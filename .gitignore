@@ -43,4 +43,4 @@ app.*.map.json
 /android/app/release
 
 # Custom ignore
-/lib/services/api/environment.dart
+lib/services/api/environment.dart
