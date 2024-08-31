@@ -8,3 +8,5 @@ class Environment {
   static const String endpointApi = "${Environment.endpoint}/";
   static const String endpointFile = "${Environment.endpoint}/uploads/";
 }
+
+// 'Amip Abdul Hamid'
