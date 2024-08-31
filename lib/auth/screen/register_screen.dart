@@ -103,19 +103,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              divide32,
+              const Text(
+                'Sign Up',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+              divide24,
               Expanded(
                 child: ListView(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.only(
-                      top: 50, left: 16, right: 16, bottom: 16),
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    const Text(
-                      'Sign Up',
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
-                    divide32,
                     CustomTextField(
                       label: 'NIP',
                       validator: requiredValidator,
@@ -131,39 +130,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textInputAction: TextInputAction.next,
                       label: 'Nama',
                     ),
-                    const Text(
-                      'Jurusan',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    divide6,
-                    DropdownButtonFormField(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Pallete.borderTexField),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
-                      ),
-                      value: selectedMajor,
-                      items:
-                          majors.map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                            value: value, child: Text(value));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedMajor = value!;
-                        });
-                      },
-                      hint: const Text('Pilih jurusan'),
-                      validator: (value) {
-                        if (value == null || selectedMajor.isEmpty) {
-                          return 'Tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    divide16,
+                    // const Text(
+                    //   'Jurusan',
+                    //   style: TextStyle(fontSize: 12),
+                    // ),
+                    // divide6,
+                    // DropdownButtonFormField(
+                    //   decoration: const InputDecoration(
+                    //     border: OutlineInputBorder(
+                    //         borderSide:
+                    //             BorderSide(color: Pallete.borderTexField),
+                    //         borderRadius:
+                    //             BorderRadius.all(Radius.circular(10))),
+                    //   ),
+                    //   value: selectedMajor,
+                    //   items:
+                    //       majors.map<DropdownMenuItem<String>>((String value) {
+                    //     return DropdownMenuItem<String>(
+                    //         value: value, child: Text(value));
+                    //   }).toList(),
+                    //   onChanged: (value) {
+                    //     setState(() {
+                    //       selectedMajor = value!;
+                    //     });
+                    //   },
+                    //   hint: const Text('Pilih jurusan'),
+                    //   validator: (value) {
+                    //     if (value == null || selectedMajor.isEmpty) {
+                    //       return 'Tidak boleh kosong';
+                    //     }
+                    //     return null;
+                    //   },
+                    // ),
+                    // divide16,
                     // if (selectedMajor.isNotEmpty)
                     //   CustomTextField(
                     //     label: 'Kelas',
@@ -180,25 +179,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     //       return null;
                     //     },
                     //   ),
-                    const Text('Jenis Kelamin'),
-                    Row(
-                      children: [
-                        radioGender('Laki-laki'),
-                        divideW16,
-                        radioGender('Perempuan'),
-                      ],
-                    ),
-                    divide8,
-                    CustomTextField(
-                      label: 'No Handphone',
-                      prefixPhone: true,
-                      validator: validateMobile,
-                      controller: phoneController,
-                      hintText: 'No Handphone',
-                      isNumber: true,
-                      textInputAction: TextInputAction.next,
-                      limit: 12,
-                    ),
+                    // const Text('Jenis Kelamin'),
+                    // Row(
+                    //   children: [
+                    //     radioGender('Laki-laki'),
+                    //     divideW16,
+                    //     radioGender('Perempuan'),
+                    //   ],
+                    // ),
+                    // divide8,
+                    // CustomTextField(
+                    //   label: 'No Handphone',
+                    //   prefixPhone: true,
+                    //   validator: validateMobile,
+                    //   controller: phoneController,
+                    //   hintText: 'No Handphone',
+                    //   isNumber: true,
+                    //   textInputAction: TextInputAction.next,
+                    //   limit: 12,
+                    // ),
                     CustomTextField(
                       label: 'Email',
                       validator: requiredEmail,
@@ -215,6 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textInputAction: TextInputAction.next,
                       controller: passwordController,
                       hintText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_rounded),
                     ),
                     CustomTextField(
                       label: 'Confirm Password',
@@ -231,45 +231,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       textInputAction: TextInputAction.next,
                       controller: confirmPasswordController,
                       hintText: 'Confirm Password',
+                      prefixIcon: const Icon(Icons.lock_rounded),
                     ),
-                    CustomTextField(
-                      label: 'Tempat Lahir',
-                      validator: validateLetterOnly,
-                      controller: placeBirthController,
-                      hintText: 'Tempat Lahir',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    CustomTextField(
-                      label: 'Tanggal Lahir ',
-                      validator: requiredValidator,
-                      controller: dateBirthController,
-                      hintText: 'Tanggal Lahir ',
-                      readOnly: true,
-                      suffixIcon: const Icon(Iconly.calendar),
-                      onTap: () => changeDate(context,
-                          controller: dateBirthController,
-                          formatDateController: formatDateBirthController),
-                    ),
-                    CustomTextField(
-                      label: 'Alamat',
-                      validator: validateAddress,
-                      controller: addressController,
-                      hintText: 'Alamat',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    ImageUpload(
-                      file: photoProfile,
-                      label: 'Foto profil',
-                      aspectRatio: 1 / 1,
-                      fixedCropRatio: CropAspectRatioPreset.square,
-                      height: 200,
-                      width: 200,
-                      onUpload: (pickedFile) {
-                        setState(() {
-                          photoProfile = pickedFile;
-                        });
-                      },
-                    ),
+                    // CustomTextField(
+                    //   label: 'Tempat Lahir',
+                    //   validator: validateLetterOnly,
+                    //   controller: placeBirthController,
+                    //   hintText: 'Tempat Lahir',
+                    //   textInputAction: TextInputAction.next,
+                    // ),
+                    // CustomTextField(
+                    //   label: 'Tanggal Lahir ',
+                    //   validator: requiredValidator,
+                    //   controller: dateBirthController,
+                    //   hintText: 'Tanggal Lahir ',
+                    //   readOnly: true,
+                    //   suffixIcon: const Icon(Iconly.calendar),
+                    //   onTap: () => changeDate(context,
+                    //       controller: dateBirthController,
+                    //       formatDateController: formatDateBirthController),
+                    // ),
+                    // CustomTextField(
+                    //   label: 'Alamat',
+                    //   validator: validateAddress,
+                    //   controller: addressController,
+                    //   hintText: 'Alamat',
+                    //   textInputAction: TextInputAction.next,
+                    // ),
+                    // ImageUpload(
+                    //   file: photoProfile,
+                    //   label: 'Foto profil',
+                    //   aspectRatio: 1 / 1,
+                    //   fixedCropRatio: CropAspectRatioPreset.square,
+                    //   height: 200,
+                    //   width: 200,
+                    //   onUpload: (pickedFile) {
+                    //     setState(() {
+                    //       photoProfile = pickedFile;
+                    //     });
+                    //   },
+                    // ),
                   ],
                 ),
               ),

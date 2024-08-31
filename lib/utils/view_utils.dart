@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -266,4 +265,25 @@ List<Schedule> filterSchedulesByMonth(
           DateFormat('yyyy-MM-dd').parse(element.date!).month ==
               selectedDate.month)
       .toList();
+}
+
+void logPrint(String message, {String color = 'yellow'}) {
+  // Map color names to ANSI color codes
+  final Map<String, int> colorMap = {
+    'yellow': 33, // Yellow color code
+    'red': 31, // Red color code
+    'green': 32, // Green color code
+    // Add more colors as needed
+  };
+
+  // Get the ANSI color code based on the provided color name
+  final int colorCode = colorMap[color.toLowerCase()] ??
+      33; // Default to yellow if color is not found
+
+  // Start and end ANSI color sequences
+  final String startColor = '\x1B[${colorCode}m';
+  const String endColor = '\x1B[0m';
+
+  // Print the message with the specified color
+  print('$startColor$message$endColor');
 }

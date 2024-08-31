@@ -9,6 +9,7 @@ import 'package:lab_attendance_mobile_teacher/modules/attendance/screen/history_
 import 'package:lab_attendance_mobile_teacher/modules/dashboard/screen/dashboard_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/screen/home_screen.dart';
 import 'package:lab_attendance_mobile_teacher/component/illustration/not_found_screen.dart';
+import 'package:lab_attendance_mobile_teacher/modules/home/screen/profile_shool_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/notification/screen/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/add_lab_room_screen.dart';
@@ -39,9 +40,11 @@ class RoutesConfig {
       case HistoryAttendanceScreen.path:
         return goTo(const HistoryAttendanceScreen());
       case AttendanceDetailScreen.path:
-        return goTo(AttendanceDetailScreen(
+        return goTo(const AttendanceDetailScreen(
             // argument: argument as AttendanceDetailArgument,
             ));
+      case ProfileSchoolScreen.path:
+        return goTo(const ProfileSchoolScreen());
       case ListUserScreen.path:
         return goTo(const ListUserScreen());
       case UserDetailScreen.path:

@@ -169,7 +169,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
             padding: const EdgeInsets.all(16),
             child: Button(
                 text: 'Tambah Jadwal Praktikum',
-                color: Pallete.border,
+                color: Colors.amber,
                 width: double.infinity,
                 press: () {
                   Navigator.pushNamed(context, DayListScheduleScreen.path);

@@ -91,6 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
     return Stack(
       children: [
         const Background(),
+        Container(
+          height: 200,
+          width: double.infinity,
+          alignment: Alignment.center,
+          child: const Text('Login',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
+        ),
         Form(
           key: _formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -99,96 +110,86 @@ class _LoginScreenState extends State<LoginScreen> {
               enableRegisterButton = _formKey.currentState!.validate();
             });
           },
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Login',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
-                  divide16,
-                  CustomTextField(
-                    label: isEmail ? 'Email' : 'NIP',
-                    validator: isEmail ? requiredEmail : requiredValidator,
-                    controller: emailNipController,
-                    hintText: isEmail ? 'Email' : 'NIP',
-                    prefixIcon: isEmail
-                        ? const Icon(Icons.email_rounded)
-                        : const Icon(Icons.person_rounded),
-                    isNumber: isEmail ? false : true,
-                  ),
-                  CustomTextField(
-                    label: 'Password',
-                    isPassword: true,
-                    showPassword: true,
-                    validator: requiredValidator,
-                    controller: passwordController,
-                    hintText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_rounded),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        child: Text(
-                          isEmail ? 'Dengan NIP' : 'Dengan Email',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            isEmail = !isEmail;
-                            emailNipController.clear();
-                          });
-                        },
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(top: 140, left: 16, right: 16, bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomTextField(
+                  label: isEmail ? 'Email' : 'NIP',
+                  validator: isEmail ? requiredEmail : requiredValidator,
+                  controller: emailNipController,
+                  hintText: isEmail ? 'Email' : 'NIP',
+                  prefixIcon: isEmail
+                      ? const Icon(Icons.email_rounded)
+                      : const Icon(Icons.person_rounded),
+                  isNumber: isEmail ? false : true,
+                ),
+                CustomTextField(
+                  label: 'Password',
+                  isPassword: true,
+                  showPassword: true,
+                  validator: requiredValidator,
+                  controller: passwordController,
+                  hintText: 'Password',
+                  prefixIcon: const Icon(Icons.lock_rounded),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      child: Text(
+                        isEmail ? 'Dengan NIP' : 'Dengan Email',
+                        style: const TextStyle(color: Colors.white),
                       ),
-                      divideW10
-                    ],
-                  ),
-                  divide32,
-                  Button(
-                      buttonColor: Pallete.border,
-                      isLoading: isLoading,
-                      width: double.infinity,
-                      text: 'Login',
-                      fontWeight: FontWeight.w600,
-                      press: enableRegisterButton
-                          ? () {
-                              login();
-                            }
-                          : null),
-                  divide10,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          'Lupa password?',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      divideW10
-                    ],
-                  ),
-                  divide48,
-                  Button(
-                    color: Pallete.border,
-                    text: 'Daftar',
-                    fontWeight: FontWeight.w600,
-                    press: () {
-                      // Navigator.pushNamed(context, DashboardScreen.path);
-                      Navigator.pushNamed(context, RegisterScreen.path);
-                    },
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        setState(() {
+                          isEmail = !isEmail;
+                          emailNipController.clear();
+                        });
+                      },
+                    ),
+                    divideW10
+                  ],
+                ),
+                divide32,
+                Button(
+                    buttonColor: Pallete.border,
+                    isLoading: isLoading,
                     width: double.infinity,
-                  ),
-                ],
-              ),
+                    text: 'Login',
+                    fontWeight: FontWeight.w600,
+                    press: enableRegisterButton
+                        ? () {
+                            login();
+                          }
+                        : null),
+                divide10,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {},
+                      child: const Text(
+                        'Lupa password?',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    divideW10
+                  ],
+                ),
+                divide48,
+                Button(
+                  color: Pallete.border,
+                  text: 'Daftar',
+                  fontWeight: FontWeight.w600,
+                  press: () {
+                    Navigator.pushNamed(context, RegisterScreen.path);
+                  },
+                  width: double.infinity,
+                ),
+              ],
             ),
           ),
         ),

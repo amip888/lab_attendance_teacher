@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "44810844235",
+    "project_id": "attendance-lab",
+    "storage_bucket": "attendance-lab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44810844235:android:8c57f62e470615310b35ce",
+        "android_client_info": {
+          "package_name": "com.example.lab_attendance_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnSh5qVPtA-huVvu8Fv0Ga9sHF4Cj7_2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44810844235:android:2cc670246290040b0b35ce",
+        "android_client_info": {
+          "package_name": "com.example.lab_attendance_mobile_teacher"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnSh5qVPtA-huVvu8Fv0Ga9sHF4Cj7_2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

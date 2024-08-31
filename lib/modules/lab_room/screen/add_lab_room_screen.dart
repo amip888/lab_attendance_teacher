@@ -11,8 +11,8 @@ import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/model/lab_room_model/lab_room.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/model/lab_room_model/lab_room_model.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/rsa_algorithm.dart';
+import 'package:lab_attendance_mobile_teacher/services/upload_file/files.dart';
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class AddLabRoomArgument {
   final String? title;
@@ -45,6 +45,7 @@ class _AddLabRoomScreenState extends State<AddLabRoomScreen> {
   bool isGenerateQr = false;
   bool isCloseTime = false;
   bool enableButton = false;
+  Files? fileUpload;
   @override
   void initState() {
     initialMinute = initialDateTime.minute;
@@ -149,51 +150,27 @@ class _AddLabRoomScreenState extends State<AddLabRoomScreen> {
                       ],
                     ),
                     divide16,
-                    isGenerateQr
-                        ? Center(
-                            child: QrImageView(
-                              data: nameLab,
-                              errorCorrectionLevel: 3,
-                              version: QrVersions.auto,
-                              embeddedImageStyle: const QrEmbeddedImageStyle(
-                                  size: Size(80, 80)),
-                              embeddedImage: const AssetImage(
-                                  'assets/images/pngs/logo.png'),
-                              size: 250,
-                              gapless: false,
-                              backgroundColor: Colors.white,
-                            ),
-                          )
-                        : const SizedBox(),
+                    GenerateQrCodeWithRSA(
+                      inputController: nameLabController,
+                      file: fileUpload,
+                      onUpload: (pickedFile) {
+                        setState(() {
+                          fileUpload = pickedFile;
+                        });
+                      },
+                    )
                   ])),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Button(
                     color: Colors.amber,
                     width: double.infinity,
-                    text: isGenerateQr ? 'Simpan' : 'Generate Qr Code',
-                    press:
-                        // enableButton
-                        //     ?
-                        () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return RSADemo();
-                        // return RSAAlgorithm();
-                      }));
-                      // isGenerateQr == false
-                      //     ? setState(() {
-                      //         Navigator.push(context,
-                      //             MaterialPageRoute(builder: (context) {
-                      //           return RSAAlgorithm();
-                      //         }));
-                      //         isGenerateQr = true;
-                      //         nameLab = nameLabController.text;
-                      //       })
-                      //     : createLabRoom();
-                    }
-                    // : null,
-                    ),
+                    text: 'Simpan',
+                    press: enableButton && fileUpload != null
+                        ? () {
+                            createLabRoom();
+                          }
+                        : null),
               )
             ],
           ),
@@ -403,5 +380,8 @@ class _AddLabRoomScreenState extends State<AddLabRoomScreen> {
     Map<String, dynamic> body = {};
     body['name'] = nameLabController.text;
     body['time'] = '${openController.text}-${closeController.text}';
+    body['file_path'] = fileUpload?.url;
+
+    log(body.toString());
   }
 }

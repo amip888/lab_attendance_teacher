@@ -23,8 +23,10 @@ class HistoryAttendanceScreen extends StatefulWidget {
       _HistoryAttendanceScreenState();
 }
 
-class _HistoryAttendanceScreenState extends State<HistoryAttendanceScreen> {
+class _HistoryAttendanceScreenState extends State<HistoryAttendanceScreen>
+    with SingleTickerProviderStateMixin {
   AttendanceBloc? attendanceBloc;
+  late TabController _tabController;
   List<ComponentFilter> listFilters = [
     ComponentFilter(
         id: '1', title: 'Semua', color: Pallete.primary, isSelected: true),
@@ -50,10 +52,17 @@ class _HistoryAttendanceScreenState extends State<HistoryAttendanceScreen> {
 
   @override
   void initState() {
+    _tabController = TabController(length: 2, vsync: this);
     filters = listFilters;
     attendanceBloc = AttendanceBloc();
     attendanceBloc!.add(GetAllAttendancesEvent());
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,30 +74,60 @@ class _HistoryAttendanceScreenState extends State<HistoryAttendanceScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
           centerTitle: true,
           automaticallyImplyLeading: false,
-          bottom: PreferredSize(
-              preferredSize: const Size(double.infinity, 45),
-              child: isLoading ? shimmerFilter() : buildFilter()),
+          bottom: TabBar(
+              controller: _tabController,
+              isScrollable: false,
+              labelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.amber),
+              unselectedLabelStyle: const TextStyle(fontSize: 15),
+              indicatorColor: Colors.amber,
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicatorWeight: 2.5,
+              tabs: const [
+                Tab(
+                  text: 'Guru',
+                ),
+                Tab(
+                  text: 'Siswa',
+                ),
+              ]),
+
+          //  Column(
+          //   children: [
+          //     PreferredSize(
+          //         preferredSize: const Size(double.infinity, 45),
+          //         child: isLoading ? shimmerFilter() : buildFilter()),
+          //   ],
+          // ),
         ),
-        body: buildView()
-        // BlocProvider(
-        //   create: (context) => attendanceBloc!,
-        //   child: BlocConsumer<AttendanceBloc, AttendanceState>(
-        //     builder: (BuildContext context, state) {
-        //       if (state is GetAllAttendancesLoadingState) {
-        //         return loading();
-        //       } else if (state is GetAllAttendancesLoadedState) {
-        //         return buildView(state.data!);
-        //       } else if (state is GetAllAttendancesEmptyState) {
-        //       } else if (state is GetAllAttendancesErrorState) {}
-        //       return Container();
-        //     },
-        //     listener: (BuildContext context, Object? state) {},
-        //   ),
-        // )
-        );
+        body: BlocProvider(
+          create: (context) => attendanceBloc!,
+          child: BlocConsumer<AttendanceBloc, AttendanceState>(
+            builder: (BuildContext context, state) {
+              if (state is GetAllAttendancesLoadingState) {
+                return loading();
+              } else if (state is GetAllAttendancesLoadedState) {
+                return buildTabBar();
+                // return buildView(state.data!);
+              } else if (state is GetAllAttendancesEmptyState) {
+              } else if (state is GetAllAttendancesErrorState) {}
+              return Container();
+            },
+            listener: (BuildContext context, Object? state) {},
+          ),
+        ));
   }
 
-  buildView() {
+  buildTabBar() {
+    return TabBarView(controller: _tabController, children: [
+      Text('Riwayat Absensi Guru'),
+      Text('Riwayat Absensi Siswa'),
+    ]);
+  }
+
+  buildView(AllAttendancesModel data) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: 3,

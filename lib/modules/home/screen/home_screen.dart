@@ -1,13 +1,17 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:developer';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:lab_attendance_mobile_teacher/component/background.dart';
 import 'package:lab_attendance_mobile_teacher/component/check_on_off_gps.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 import 'package:lab_attendance_mobile_teacher/component/svg_image.dart';
+import 'package:lab_attendance_mobile_teacher/modules/attendance/screen/attendance_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/attendance/screen/history_attendance_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/bloc/home_bloc.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/model/user_login_model/user_login_model.dart';
@@ -15,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:lab_attendance_mobile_teacher/modules/home/screen/profile_shool_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/notification/screen/notification_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule_model.dart';
@@ -24,6 +29,15 @@ import 'package:lab_attendance_mobile_teacher/services/session/session_provider.
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:provider/provider.dart';
+
+final List<String> imgList = [
+  'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
+  'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
+  'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
+  'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
+  'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
+  'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
+];
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,6 +73,50 @@ class _HomeScreenState extends State<HomeScreen> {
   double? distance;
   bool isTooFar = true;
   double? maxDistante = 200.0; // DALAM SATUAN METER
+
+  final List<Widget> imageSliders = imgList
+      .map((item) => Container(
+            child: Container(
+              margin: EdgeInsets.all(5.0),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                  child: Stack(
+                    children: <Widget>[
+                      Image.network(item, fit: BoxFit.cover, width: 1000.0),
+                      Positioned(
+                        bottom: 0.0,
+                        left: 0.0,
+                        right: 0.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color.fromARGB(200, 0, 0, 0),
+                                Color.fromARGB(0, 0, 0, 0)
+                              ],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                            ),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 20.0),
+                          child: Text(
+                            'No. ${imgList.indexOf(item)} image',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )),
+            ),
+          ))
+      .toList();
+  final CarouselSliderController _controller = CarouselSliderController();
+  int _current = 0;
 
   @override
   void initState() {
@@ -185,245 +243,311 @@ class _HomeScreenState extends State<HomeScreen> {
                 // padding: const EdgeInsets.only(top: 16),
                 shrinkWrap: true,
                 children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.only(top: 16, right: 12, left: 12),
-                    decoration: const BoxDecoration(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        titleHeader('Jadwal Praktikum'),
-                        ListView.builder(
-                          padding: const EdgeInsets.only(top: 16, bottom: 4),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 3,
-                          itemBuilder: (BuildContext context, int index) {
-                            var item = schedulesModel.schedules![index];
-                            DateTime initialDay = DateTime.parse(item.date!);
-                            String formatDate =
-                                DateFormat('dd').format(initialDay);
-                            String formatYear =
-                                DateFormat('yyyy').format(initialDay);
-                            String dayName = formatDay(initialDay);
-                            String monthName = formatMonth(initialDay);
-                            String day =
-                                '$dayName, $formatDate $monthName $formatYear';
-                            String dayKey =
-                                DateFormat('EEEE').format(initialDay);
-                            return cardSchedule(
-                                name: item.teacher!.name,
-                                image: item.teacher!.filePath,
-                                day: day,
-                                subject: item.subject,
-                                roomLab: item.labRoom!.labName,
-                                status: item.status,
-                                Class: item.scheduleClass,
-                                dayKey: dayKey,
-                                item: item);
-                          },
-                        ),
-                        titleHeader('Riwayat Absensi'),
-                        ListView.builder(
-                          padding: const EdgeInsets.only(top: 16, bottom: 4),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 3,
-                          itemBuilder: (BuildContext context, int index) {
-                            return cardAttendance(context);
-                          },
-                        ),
-                      ],
-                    ),
+                  contentSlider(),
+                  profileSchool(),
+                  divide16,
+                  titleHeader('Jadwal Praktikum'),
+                  ListView.builder(
+                    padding: const EdgeInsets.only(top: 16, bottom: 4),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 3,
+                    itemBuilder: (BuildContext context, int index) {
+                      var item = schedulesModel.schedules![index];
+                      DateTime initialDay = DateTime.parse(item.date!);
+                      String formatDate = DateFormat('dd').format(initialDay);
+                      String formatYear = DateFormat('yyyy').format(initialDay);
+                      String dayName = formatDay(initialDay);
+                      String monthName = formatMonth(initialDay);
+                      String day =
+                          '$dayName, $formatDate $monthName $formatYear';
+                      String dayKey = DateFormat('EEEE').format(initialDay);
+                      return cardSchedule(
+                          name: item.teacher!.name,
+                          image: item.teacher!.filePath,
+                          day: day,
+                          subject: item.subject,
+                          roomLab: item.labRoom!.labName,
+                          status: item.status,
+                          Class: item.scheduleClass,
+                          dayKey: dayKey,
+                          item: item);
+                    },
                   ),
-                  // Container(
-                  //   height: 500,
-                  //   decoration: BoxDecoration(
-                  //       color: Pallete.primary2.withOpacity(0.8),
-                  //       borderRadius: BorderRadius.circular(15)),
-                  //   child: GridView.count(
-                  //     physics: const NeverScrollableScrollPhysics(),
-                  //     primary: false,
-                  //     padding: const EdgeInsets.all(20.0),
-                  //     crossAxisSpacing: 20.0,
-                  //     mainAxisSpacing: 20,
-                  //     crossAxisCount: 2,
-                  //     children: [
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.amber,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.red,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.blue,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.indigo,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.purple,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //       Container(
-                  //           decoration: BoxDecoration(
-                  //               color: Colors.orange,
-                  //               borderRadius: BorderRadius.circular(15)),
-                  //           child: const Icon(Icons.person)),
-                  //     ],
-                  //   ),
-                  // )
+                  titleHeader('Riwayat Absensi'),
+                  ListView.builder(
+                    padding: const EdgeInsets.only(top: 16, bottom: 4),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 3,
+                    itemBuilder: (BuildContext context, int index) {
+                      return cardAttendance(context);
+                    },
+                  ),
                 ],
               ),
             ),
+            // Container(
+            //   height: 500,
+            //   decoration: BoxDecoration(
+            //       color: Pallete.primary2.withOpacity(0.8),
+            //       borderRadius: BorderRadius.circular(15)),
+            //   child: GridView.count(
+            //     physics: const NeverScrollableScrollPhysics(),
+            //     primary: false,
+            //     padding: const EdgeInsets.all(20.0),
+            //     crossAxisSpacing: 20.0,
+            //     mainAxisSpacing: 20,
+            //     crossAxisCount: 2,
+            //     children: [
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.amber,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.red,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.blue,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.indigo,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.purple,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //       Container(
+            //           decoration: BoxDecoration(
+            //               color: Colors.orange,
+            //               borderRadius: BorderRadius.circular(15)),
+            //           child: const Icon(Icons.person)),
+            //     ],
+            //   ),
+            // )
           ],
         ),
-        //   Center(
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       ElevatedButton(
-        //         onPressed: () {
-        //           String message = 'Hello, RSA!';
-        //           Uint8List encryptedMessage = rsaUtils.encrypt(message, keyPair!.publicKey);
-        //           print('Encrypted Message: ${encryptedMessage.toString()}');
-        //         },
-        //         child: Text('Encrypt Message'),
-        //       ),
-        //       ElevatedButton(
-        //         onPressed: () {
-        //           String message = 'Hello, RSA!';
-        //           Uint8List encryptedMessage = rsaUtils.encrypt(message, keyPair!.publicKey);
-        //           String decryptedMessage = rsaUtils.decrypt(encryptedMessage, keyPair!.privateKey);
-        //           print('Decrypted Message: $decryptedMessage');
-        //         },
-        //         child: Text('Decrypt Message'),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        // SingleChildScrollView(
-        //   padding: const EdgeInsets.all(10),
-        //   child: Column(
-        //     mainAxisAlignment: MainAxisAlignment.start,
-        //     children: [
-        //       divide64,
-        //       Container(
-        //         padding: const EdgeInsets.only(top: 16, right: 12, left: 12),
-        //         decoration: BoxDecoration(
-        //             color: Pallete.primary2.withOpacity(0.8),
-        //             borderRadius: BorderRadius.circular(12)),
-        //         child: Column(
-        //           crossAxisAlignment: CrossAxisAlignment.start,
-        //           children: [
-        //             const Text(
-        //               'Daftar Jadwal Praktikum',
-        //               style: TextStyle(fontWeight: FontWeight.bold),
-        //             ),
-        //             divide8,
-        //             ListView.builder(
-        //               shrinkWrap: true,
-        //               physics: const NeverScrollableScrollPhysics(),
-        //               itemCount: 3,
-        //               itemBuilder: (BuildContext context, int index) {
-        //                 var item = schedulesModel.schedules![index];
-        //                 DateTime initialDay = DateTime.parse(item.date!);
-        //                 String formatDate = DateFormat('dd').format(initialDay);
-        //                 String formatYear =
-        //                     DateFormat('yyyy').format(initialDay);
-        //                 String dayName = formatDay(initialDay);
-        //                 String monthName = formatMonth(initialDay);
-        //                 String day =
-        //                     '$dayName, $formatDate $monthName $formatYear';
-        //                 String dayKey = DateFormat('EEEE').format(initialDay);
-        //                 return cardSchedule(
-        //                     name: item.teacher!.name,
-        //                     image: item.teacher!.filePath,
-        //                     day: day,
-        //                     subject: item.subject,
-        //                     roomLab: item.labRoom!.labName,
-        //                     status: item.status,
-        //                     Class: item.scheduleClass,
-        //                     dayKey: dayKey,
-        //                     item: item);
-        //               },
-        //             ),
-        //             const Text(
-        //               'Riwayat Absensi',
-        //               style: TextStyle(fontWeight: FontWeight.bold),
-        //             ),
-        //             divide8,
-        //             ListView.builder(
-        //               shrinkWrap: true,
-        //               physics: const NeverScrollableScrollPhysics(),
-        //               itemCount: 3,
-        //               itemBuilder: (BuildContext context, int index) {
-        //                 return cardAttendance(context);
-        //               },
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //       // Container(
-        //       //   height: 500,
-        //       //   decoration: BoxDecoration(
-        //       //       color: Pallete.primary2.withOpacity(0.8),
-        //       //       borderRadius: BorderRadius.circular(15)),
-        //       //   child: GridView.count(
-        //       //     physics: const NeverScrollableScrollPhysics(),
-        //       //     primary: false,
-        //       //     padding: const EdgeInsets.all(20.0),
-        //       //     crossAxisSpacing: 20.0,
-        //       //     mainAxisSpacing: 20,
-        //       //     crossAxisCount: 2,
-        //       //     children: [
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.amber,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.red,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.blue,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.indigo,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.purple,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //       Container(
-        //       //           decoration: BoxDecoration(
-        //       //               color: Colors.orange,
-        //       //               borderRadius: BorderRadius.circular(15)),
-        //       //           child: const Icon(Icons.person)),
-        //       //     ],
-        //       //   ),
-        //       // )
-        //     ],
-        //   ),
-        // ),
       ],
     );
+    //   Center(
+    //   child: Column(
+    //     mainAxisAlignment: MainAxisAlignment.center,
+    //     children: [
+    //       ElevatedButton(
+    //         onPressed: () {
+    //           String message = 'Hello, RSA!';
+    //           Uint8List encryptedMessage = rsaUtils.encrypt(message, keyPair!.publicKey);
+    //           print('Encrypted Message: ${encryptedMessage.toString()}');
+    //         },
+    //         child: Text('Encrypt Message'),
+    //       ),
+    //       ElevatedButton(
+    //         onPressed: () {
+    //           String message = 'Hello, RSA!';
+    //           Uint8List encryptedMessage = rsaUtils.encrypt(message, keyPair!.publicKey);
+    //           String decryptedMessage = rsaUtils.decrypt(encryptedMessage, keyPair!.privateKey);
+    //           print('Decrypted Message: $decryptedMessage');
+    //         },
+    //         child: Text('Decrypt Message'),
+    //       ),
+    //     ],
+    //   ),
+    // ),
+    // SingleChildScrollView(
+    //   padding: const EdgeInsets.all(10),
+    //   child: Column(
+    //     mainAxisAlignment: MainAxisAlignment.start,
+    //     children: [
+    //       divide64,
+    //       Container(
+    //         padding: const EdgeInsets.only(top: 16, right: 12, left: 12),
+    //         decoration: BoxDecoration(
+    //             color: Pallete.primary2.withOpacity(0.8),
+    //             borderRadius: BorderRadius.circular(12)),
+    //         child: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             const Text(
+    //               'Daftar Jadwal Praktikum',
+    //               style: TextStyle(fontWeight: FontWeight.bold),
+    //             ),
+    //             divide8,
+    //             ListView.builder(
+    //               shrinkWrap: true,
+    //               physics: const NeverScrollableScrollPhysics(),
+    //               itemCount: 3,
+    //               itemBuilder: (BuildContext context, int index) {
+    //                 var item = schedulesModel.schedules![index];
+    //                 DateTime initialDay = DateTime.parse(item.date!);
+    //                 String formatDate = DateFormat('dd').format(initialDay);
+    //                 String formatYear =
+    //                     DateFormat('yyyy').format(initialDay);
+    //                 String dayName = formatDay(initialDay);
+    //                 String monthName = formatMonth(initialDay);
+    //                 String day =
+    //                     '$dayName, $formatDate $monthName $formatYear';
+    //                 String dayKey = DateFormat('EEEE').format(initialDay);
+    //                 return cardSchedule(
+    //                     name: item.teacher!.name,
+    //                     image: item.teacher!.filePath,
+    //                     day: day,
+    //                     subject: item.subject,
+    //                     roomLab: item.labRoom!.labName,
+    //                     status: item.status,
+    //                     Class: item.scheduleClass,
+    //                     dayKey: dayKey,
+    //                     item: item);
+    //               },
+    //             ),
+    //             const Text(
+    //               'Riwayat Absensi',
+    //               style: TextStyle(fontWeight: FontWeight.bold),
+    //             ),
+    //             divide8,
+    //             ListView.builder(
+    //               shrinkWrap: true,
+    //               physics: const NeverScrollableScrollPhysics(),
+    //               itemCount: 3,
+    //               itemBuilder: (BuildContext context, int index) {
+    //                 return cardAttendance(context);
+    //               },
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //       // Container(
+    //       //   height: 500,
+    //       //   decoration: BoxDecoration(
+    //       //       color: Pallete.primary2.withOpacity(0.8),
+    //       //       borderRadius: BorderRadius.circular(15)),
+    //       //   child: GridView.count(
+    //       //     physics: const NeverScrollableScrollPhysics(),
+    //       //     primary: false,
+    //       //     padding: const EdgeInsets.all(20.0),
+    //       //     crossAxisSpacing: 20.0,
+    //       //     mainAxisSpacing: 20,
+    //       //     crossAxisCount: 2,
+    //       //     children: [
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.amber,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.red,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.blue,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.indigo,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.purple,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //       Container(
+    //       //           decoration: BoxDecoration(
+    //       //               color: Colors.orange,
+    //       //               borderRadius: BorderRadius.circular(15)),
+    //       //           child: const Icon(Icons.person)),
+    //       //     ],
+    //       //   ),
+    //       // )
+    //     ],
+    //   ),
+    // ),
+    //   ],
+    // );
+  }
+
+  contentSlider() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(
+        height: 180,
+        child: Expanded(
+          child: CarouselSlider(
+            items: imageSliders,
+            carouselController: _controller,
+            options: CarouselOptions(
+                autoPlay: false,
+                enlargeCenterPage: true,
+                aspectRatio: 2.3,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _current = index;
+                  });
+                }),
+          ),
+        ),
+      ),
+      // Row(
+      //   mainAxisAlignment: MainAxisAlignment.center,
+      //   children: imgList.asMap().entries.map((entry) {
+      //     return GestureDetector(
+      //       onTap: () => _controller.animateToPage(entry.key),
+      //       child: Container(
+      //         width: 7,
+      //         height: 7,
+      //         margin:
+      //             const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      //         decoration: BoxDecoration(
+      //             shape: BoxShape.circle,
+      //             color: (Theme.of(context).brightness == Brightness.dark
+      //                     ? Colors.white
+      //                     : Colors.black)
+      //                 .withOpacity(_current == entry.key ? 0.9 : 0.4)),
+      //       ),
+      //     );
+      //   }).toList(),
+      // ),
+    ]);
+  }
+
+  profileSchool() {
+    return Column(children: [
+      Image.asset('assets/images/pngs/logo_smk_talaga.png', width: 90),
+      divide16,
+      divide8,
+      RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+            text:
+                'SMK Negeri 1 Talaga adalah sekolah kejuruan negeri pertama di wilayah selatan Kab. Majalengka. Sekolah ini berdiri pada tahun 2006 dan berlokasi di desa Talagkulon, Talaga Kab... ',
+            style: const TextStyle(),
+            children: <TextSpan>[
+              TextSpan(
+                  text: 'Baca selengkapnya',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600, color: Colors.blue.shade300),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () =>
+                        Navigator.pushNamed(context, ProfileSchoolScreen.path)
+                  // Navigator.pushNamed(
+                  //       context,
+                  //       WebViewScreen.path,
+                  //       arguments: WebViewArgument(
+                  //           LocaleKeys.auth_tos.tr(), Environment.term),
+                  //     )
+                  ),
+            ]),
+      ),
+    ]);
   }
 
   titleHeader(String title) {
@@ -460,15 +584,15 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
             border: Border.all(width: 2, color: Pallete.border),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             color: Pallete.primary2),
         child: Column(
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 NetworkImagePlaceHolder(
                   imageUrl: image,
@@ -483,12 +607,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name ?? 'Sandi',
+                        day,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      divide4,
                       Text(
-                        'Ruang $roomLab',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        subject,
                       ),
                     ],
                   ),
@@ -507,34 +631,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               ],
             ),
-            divide8,
-            Container(
-              color: Pallete.border,
-              width: double.infinity,
-              height: 1.5,
-            ),
-            divide8,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Hari/Tanggal'),
-                    Text('Mata Pelajaran'),
-                    Text('Kelas'),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(day),
-                    Text(subject),
-                    Text(Class),
-                  ],
-                ),
-              ],
-            ),
+            // divide8,
+            // Container(
+            //   color: Pallete.border,
+            //   width: double.infinity,
+            //   height: 1.5,
+            // ),
+            // divide8,
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     const Column(
+            //       crossAxisAlignment: CrossAxisAlignment.start,
+            //       children: [
+            //         Text('Hari/Tanggal'),
+            //         Text('Mata Pelajaran'),
+            //         Text('Kelas'),
+            //       ],
+            //     ),
+            //     Column(
+            //       crossAxisAlignment: CrossAxisAlignment.end,
+            //       children: [
+            //         Text(day),
+            //         Text(subject),
+            //         Text(Class),
+            //       ],
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
@@ -548,15 +672,15 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
             border: Border.all(width: 2, color: Pallete.border),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             color: Pallete.primary2),
         child: Column(
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 NetworkImagePlaceHolder(
                   imageUrl: 'image',
@@ -574,16 +698,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Sandi',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      divide4,
                       Text(
                         'Senin, 17 Juli 2024',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: Colors.green,
@@ -593,32 +717,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 12),
                   ),
                 )
-              ],
-            ),
-            divide8,
-            Container(
-              color: Pallete.border,
-              width: double.infinity,
-              height: 1.5,
-            ),
-            divide8,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Ruangan Lab'),
-                    Text('Kelas'),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Lab RPL 01'),
-                    Text('XI RPL 01'),
-                  ],
-                ),
               ],
             ),
           ],
