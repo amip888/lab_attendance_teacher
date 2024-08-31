@@ -1,13 +1,10 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Environment {
-  static const String apikey = '0f99beea-bfbf-11ec-9708-ef87d9a9c4d9';
-  static const String geoApiKey = 'AIzaSyCbo7jjDTdFANGzFcWCc9MwXsmID-OXgiQ';
+  static String endpoint = dotenv.env['API_ENDPOINT'] ?? 'default_url';
+  // static String endpoint = dotenv.env['API_ENDPOINT_LOCAL'] ?? 'default_url';
+  static String apiKey = dotenv.env['API_KEY'] ?? 'default_key';
 
-  // static const String endpoint = 'http://192.168.43.18:3000';
-  static const String endpoint = 'http://192.168.100.24:3000';
-
-  static const String endpointApi = "${Environment.endpoint}/";
-  static const String endpointFile = "${Environment.endpoint}/uploads/";
+  static String endpointApi = "${Environment.endpoint}/";
+  static String endpointFile = "${Environment.endpoint}/uploads/";
 }
-
-// 'Amip Abdul Hamid'
-// 'Amip Abdul Hamid123'

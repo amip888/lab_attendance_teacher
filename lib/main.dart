@@ -79,6 +79,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:lab_attendance_mobile_teacher/auth/screen/login_screen.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
@@ -151,6 +152,8 @@ void showFlutterNotification(RemoteMessage message) {
 late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 void main() async {
+  // Memuat file .env sebelum menjalankan aplikasi
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

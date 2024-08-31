@@ -8,7 +8,7 @@ class BatchApi {
   final ApiService _apiService;
 
   BatchApi() : _apiService = ApiService();
-  static const String api = Environment.endpointApi;
+  static String api = Environment.endpointApi;
   static const String teacher = 'teacher';
   static const String register = '/register';
   static const String login = '/login';

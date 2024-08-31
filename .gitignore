@@ -42,5 +42,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Custom ignore
-lib/services/api/environment.dart
+# dotenv environment variables file
+.env

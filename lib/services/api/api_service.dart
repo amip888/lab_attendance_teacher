@@ -31,7 +31,7 @@ class ApiService {
       _dio.options.headers['Authorization'] = 'Bearer $accessToken';
       _dio.options.headers['Accept'] = 'application/json';
     }
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
     log('QUERY $queryParam');
     log('Url: $url');
 
@@ -56,7 +56,7 @@ class ApiService {
       _dio.options.headers['Authorization'] = 'Bearer $accessToken';
     }
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
 
     try {
       Response response = await _dio.get(url, queryParameters: queryParam);
@@ -142,7 +142,7 @@ class ApiService {
       // log('BEARER $accessToken');
     }
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
     var formBody = FormData.fromMap(body);
 
     try {
@@ -174,7 +174,7 @@ class ApiService {
       // log('BEARER $accessToken');
     }
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
     var formBody = FormData.fromMap(body);
 
     try {
@@ -200,7 +200,7 @@ class ApiService {
       _dio.options.headers['Authorization'] = 'Bearer $accessToken';
       _dio.options.headers['Accept'] = 'application/json';
     }
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
     Response response = await _dio.delete(url);
     return response;
   }
@@ -216,7 +216,7 @@ class ApiService {
       _dio.options.headers['Authorization'] = 'Bearer $accessToken';
     }
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.headers['ApiKey'] = Environment.apikey;
+    _dio.options.headers['ApiKey'] = Environment.apiKey;
 
     dynamic formBody;
     if (body != null) {
