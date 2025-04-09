@@ -10,7 +10,7 @@ class Teacher {
   String? name;
   String? major;
   String? phone;
-  bool? gender;
+  String? gender;
   @JsonKey(name: 'place_birth')
   String? placeBirth;
   @JsonKey(name: 'date_birth')
@@ -53,7 +53,7 @@ class Teacher {
     String? name,
     String? major,
     String? phone,
-    bool? gender,
+    String? gender,
     String? placeBirth,
     String? dateBirth,
     String? address,

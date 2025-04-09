@@ -8,11 +8,9 @@ class Teacher {
   @JsonKey(name: 'id_user')
   String? idUser;
   String? name;
-  @JsonKey(name: 'class')
-  String? teacherClass;
   String? major;
   String? phone;
-  bool? gender;
+  String? gender;
   @JsonKey(name: 'place_birth')
   String? placeBirth;
   @JsonKey(name: 'date_birth')
@@ -27,7 +25,6 @@ class Teacher {
     this.id,
     this.idUser,
     this.name,
-    this.teacherClass,
     this.major,
     this.phone,
     this.gender,
@@ -41,7 +38,7 @@ class Teacher {
 
   @override
   String toString() {
-    return 'Teacher(id: $id, idUser: $idUser, name: $name, teacherClass: $teacherClass, major: $major, phone: $phone, gender: $gender, placeBirth: $placeBirth, dateBirth: $dateBirth, address: $address, filePath: $filePath, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Teacher(id: $id, idUser: $idUser, name: $name, major: $major, phone: $phone, gender: $gender, placeBirth: $placeBirth, dateBirth: $dateBirth, address: $address, filePath: $filePath, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   factory Teacher.fromJson(Map<String, dynamic> json) {
@@ -54,10 +51,9 @@ class Teacher {
     String? id,
     String? idUser,
     String? name,
-    String? teacherClass,
     String? major,
     String? phone,
-    bool? gender,
+    String? gender,
     String? placeBirth,
     String? dateBirth,
     String? address,
@@ -69,7 +65,6 @@ class Teacher {
       id: id ?? this.id,
       idUser: idUser ?? this.idUser,
       name: name ?? this.name,
-      teacherClass: teacherClass ?? this.teacherClass,
       major: major ?? this.major,
       phone: phone ?? this.phone,
       gender: gender ?? this.gender,

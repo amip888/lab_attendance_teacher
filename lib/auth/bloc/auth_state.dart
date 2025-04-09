@@ -6,24 +6,8 @@ abstract class AuthUserState {
 
 class AuthUserInitial extends AuthUserState {}
 
-class GetAuthUserLoadingState extends AuthUserState {
-  GetAuthUserLoadingState();
-}
-
-class GetAuthUserLoadedState extends AuthUserState {
-  // final AuthUserResult data;
-  // // final UserResult data;
-  // const GetAuthUserLoadedState(this.data);
-}
-
-class GetAuthUserErrorState extends AuthUserState {
-  final String message;
-  const GetAuthUserErrorState(this.message);
-}
-
-class GetAuthUserEmptyState extends AuthUserState {
-  final String message;
-  const GetAuthUserEmptyState(this.message);
+class NoInternetConnectionState extends AuthUserState {
+  NoInternetConnectionState();
 }
 
 class PostRegisterLoadingState extends AuthUserState {

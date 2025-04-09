@@ -6,5 +6,5 @@ class Environment {
   static String apiKey = dotenv.env['API_KEY'] ?? 'default_key';
 
   static String endpointApi = "${Environment.endpoint}/";
-  static String endpointFile = "${Environment.endpoint}/uploads/";
+  static String endpointFile = "${Environment.endpoint}/file/get-image/";
 }

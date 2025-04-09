@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 

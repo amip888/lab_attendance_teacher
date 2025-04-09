@@ -6,6 +6,10 @@ abstract class AccountState {
 
 class AccountInitial extends AccountState {}
 
+class NoInternetConnectionState extends AccountState {
+  NoInternetConnectionState();
+}
+
 class GetUserAccountLoadingState extends AccountState {
   GetUserAccountLoadingState();
 }
@@ -23,6 +27,24 @@ class GetUserAccountErrorState extends AccountState {
 class GetUserAccountEmptyState extends AccountState {
   final String message;
   const GetUserAccountEmptyState(this.message);
+}
+
+class PostPINLoadingState extends AccountState {
+  PostPINLoadingState();
+}
+
+class PostPINLoadedState extends AccountState {
+  const PostPINLoadedState();
+}
+
+class PostPINFailedState extends AccountState {
+  final String message;
+  const PostPINFailedState(this.message);
+}
+
+class PostPINErrorState extends AccountState {
+  final String message;
+  const PostPINErrorState(this.message);
 }
 
 class UpdateUserAccountLoadingState extends AccountState {

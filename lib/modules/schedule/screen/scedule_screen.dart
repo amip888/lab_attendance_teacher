@@ -1,17 +1,19 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lab_attendance_mobile_teacher/component/button/button.dart';
 import 'package:lab_attendance_mobile_teacher/component/component_filter.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
 import 'package:lab_attendance_mobile_teacher/component/illustration/illustration_widget.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/component/rsa_algorithm.dart';
 import 'package:lab_attendance_mobile_teacher/component/shimmer.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/bloc/schedule_bloc.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule.dart';
+import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/teacher.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/day_list_schedule_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/scedule_detail_screen.dart';
 import 'package:lab_attendance_mobile_teacher/services/local_storage_services.dart';
@@ -46,16 +48,18 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
         color: Pallete.primary,
         isSelected: false),
   ];
-  List<ComponentFilter> filters = [];
   List<Schedule> listSchedule = [];
   List<Schedule> listFilterSchedule = [];
   String? filterSchedule;
   ScheduleBloc? scheduleBloc;
   String? teacherId;
   bool isLoading = false;
+  bool isError = false;
+  RsaAlgorithm rsaAlgorithm = RsaAlgorithm();
 
   @override
   void initState() {
+    rsaAlgorithm.initializeRSA();
     scheduleBloc = ScheduleBloc();
     scheduleBloc!.add(GetScheduleEvent());
     listFilterSchedule = listSchedule;
@@ -75,9 +79,12 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         backgroundColor: Pallete.primary2,
-        bottom: PreferredSize(
-            preferredSize: const Size(double.infinity, 45),
-            child: isLoading ? shimmerFilter() : buildFilter()),
+        automaticallyImplyLeading: false,
+        bottom: !isError
+            ? PreferredSize(
+                preferredSize: const Size(double.infinity, 45),
+                child: isLoading ? shimmerFilter() : buildFilter())
+            : null,
       ),
       body: BlocProvider(
         create: (context) => scheduleBloc!,
@@ -104,6 +111,13 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
                   scheduleBloc!.add(GetScheduleEvent());
                 },
               );
+            } else if (state is NoInternetConnectionState) {
+              return IllustrationWidget(
+                type: IllustrationWidgetType.notConnection,
+                onButtonTap: () {
+                  scheduleBloc!.add(GetScheduleEvent());
+                },
+              );
             }
             return Container();
           },
@@ -117,9 +131,34 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
               setState(() {
                 isLoading = false;
               });
-              filters.addAll(listFilters);
-              listSchedule.addAll(state.data.schedules!);
+              // listSchedule.addAll(state.data.schedules!);
+              // listSchedule.sort((a, b) => a.date!.compareTo(b.date!));
+              for (var item in state.data.schedules!) {
+                listSchedule.add(Schedule(
+                  id: item.id,
+                  idTeacher: item.idTeacher,
+                  idLabRoom: item.idLabRoom,
+                  subject: item.subject,
+                  scheduleClass: item.scheduleClass,
+                  date: item.date,
+                  beginTime: item.beginTime,
+                  endTime: item.endTime,
+                  status: item.status,
+                  teacher: Teacher(
+                      name: rsaAlgorithm.onDecrypt(item.teacher!.name!),
+                      filePath:
+                          rsaAlgorithm.onDecrypt(item.teacher!.filePath!)),
+                  labRoom: item.labRoom,
+                ));
+              }
               listSchedule.sort((a, b) => a.date!.compareTo(b.date!));
+            } else if (state is GetScheduleEmptyState ||
+                state is GetScheduleErrorState ||
+                state is NoInternetConnectionState) {
+              setState(() {
+                isLoading = false;
+                isError = true;
+              });
             }
           },
         ),
@@ -129,54 +168,43 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
 
   buildView() {
     if (listFilterSchedule.isNotEmpty) {
-      return Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: listFilterSchedule.length,
-              itemBuilder: (BuildContext context, int index) {
-                log('count list: ${listFilterSchedule.length}');
-                var item = listFilterSchedule[index];
-                DateTime initialDay = DateTime.parse(item.date!);
-                String formatDate = DateFormat('dd').format(initialDay);
-                String formatYear = DateFormat('yyyy').format(initialDay);
-                String dayKey = DateFormat('EEEE').format(initialDay);
-                String dayName = formatDay(initialDay);
-                String monthName = formatMonth(initialDay);
-                String day = '$dayName, $formatDate $monthName $formatYear';
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, ScheduleDetailScreen.path,
-                        arguments: ScheduleDetailArgument(
-                            dayKey: dayKey, day: day, schedule: item));
-                  },
-                  child: cardSchedule(
-                      name: item.teacher!.name,
-                      image: item.teacher!.filePath,
-                      day: day,
-                      subject: item.subject,
-                      roomLab: item.labRoom!.labName,
-                      status: item.status,
-                      Class: item.scheduleClass,
-                      dayKey: dayKey,
-                      item: item),
-                );
+      return RefreshIndicator(
+        backgroundColor: Pallete.background,
+        color: Pallete.primary2,
+        onRefresh: () async {
+          listFilterSchedule.clear();
+          scheduleBloc!.add(GetScheduleEvent());
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: listFilterSchedule.length,
+          itemBuilder: (BuildContext context, int index) {
+            log('count list: ${listFilterSchedule.length}');
+            var item = listFilterSchedule[index];
+            DateTime initialDay = DateTime.parse(item.date!);
+            String formatDate = DateFormat('dd').format(initialDay);
+            String formatYear = DateFormat('yyyy').format(initialDay);
+            String dayName = formatDay(initialDay);
+            String monthName = formatMonth(initialDay);
+            String day = '$dayName, $formatDate $monthName $formatYear';
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, ScheduleDetailScreen.path,
+                    arguments:
+                        ScheduleDetailArgument(day: day, schedule: item));
               },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Button(
-                text: 'Tambah Jadwal Praktikum',
-                color: Colors.amber,
-                width: double.infinity,
-                press: () {
-                  Navigator.pushNamed(context, DayListScheduleScreen.path);
-                  // Navigator.pushNamed(context, AddScheduleScreen.path);
-                }),
-          )
-        ],
+              child: cardSchedule(
+                  name: item.teacher!.name,
+                  image: item.teacher!.filePath,
+                  day: day,
+                  subject: item.subject,
+                  roomLab: item.labRoom!.labName,
+                  status: item.status,
+                  Class: item.scheduleClass,
+                  item: item),
+            );
+          },
+        ),
       );
     } else {
       return IllustrationWidget(
@@ -197,7 +225,6 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
       roomLab,
       status,
       Class,
-      required String dayKey,
       required Schedule item}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -384,7 +411,7 @@ class _SchedulesScreenState extends State<SchedulesScreen> {
       height: 50,
       child: ListView.builder(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-        itemCount: filters.length,
+        itemCount: listFilters.length,
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         itemBuilder: (BuildContext context, int index) {

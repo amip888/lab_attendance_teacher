@@ -1,30 +1,33 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lab_attendance_mobile_teacher/component/button/button.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
+import 'package:lab_attendance_mobile_teacher/component/custom_dialog_box.dart';
+import 'package:lab_attendance_mobile_teacher/component/illustration/illustration_widget.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/component/rsa_algorithm.dart';
 import 'package:lab_attendance_mobile_teacher/modules/attendance/bloc/attendance_bloc.dart';
-import 'package:lab_attendance_mobile_teacher/modules/attendance/model/scedule_model/schedule_model.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/screen/home_screen.dart';
-import 'package:lab_attendance_mobile_teacher/services/local_storage_services.dart';
+import 'package:lab_attendance_mobile_teacher/modules/schedule/model/get_one_schedule_model/schedule.dart';
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:maps_toolkit/maps_toolkit.dart';
-// import 'package:pointycastle/export.dart' as assymetricKey;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-enum ScanMode { arrival, exchange }
+enum AttendanceStatus { onTime, late, absent, notAllowed }
 
-class ScanQRArgument {
-  // ScanMode scanMode;
-  // String eventId;
-  // ScanQRArgument({required this.scanMode, required this.eventId});
+class AttendanceArgument {
+  final bool isNotif;
+  final String? date, time;
+
+  AttendanceArgument({this.isNotif = false, this.date, this.time});
 }
 
 class AttendanceScreen extends StatefulWidget {
-  final ScanQRArgument? argument;
+  final AttendanceArgument? argument;
   const AttendanceScreen({super.key, this.argument});
 
   static const String path = '/attendance/qrcode';
@@ -41,30 +44,47 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   bool isShowLoading = false;
   LatLng? userLatLng;
-  final LatLng schoolLatLng = LatLng(-6.937893132288915, 107.73815975163151);
+  LatLng? schoolLatLng;
+  // final LatLng schoolLatLng = LatLng(-7.0396629, 108.3584456); //Lokasi Rumah
+  // final LatLng schoolLatLng = LatLng(-6.937893132288915, 107.73815975163151); //Lokasi Sekolah
 
   String? branchId;
   AttendanceBloc? attendanceBloc;
-  ScheduleModel? scheduleModel;
+  Map<String, dynamic> params = {};
+  Schedule? schedule;
+  String stateType = 'loading';
   String idSchedule = '';
   double? distance;
   double? maxDistance = 200.0; // DALAM SATUAN METER
-  bool isTooFar = true;
-  // late RSAAlgorithmUtils rsaUtil;
-  // late assymetricKey.AsymmetricKeyPair<assymetricKey.RSAPublicKey,
-  //     assymetricKey.RSAPrivateKey> keyPair;
+  bool isTooFar = false;
+  bool cameraIsPause = false;
+  String? date, time, labName, dateNow, timeNow;
+  RsaAlgorithm rsaAlgorithm = RsaAlgorithm();
+  AttendanceStatus? attendanceStatus;
 
   @override
   void initState() {
+    dateNow = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    timeNow = DateFormat('HH:mm').format(DateTime.now());
+    log('time: $timeNow');
+    if (widget.argument!.isNotif == true) {
+      date = widget.argument!.date;
+      time = widget.argument!.time;
+    } else {
+      date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      time = DateFormat('HH:mm').format(DateTime.now());
+    }
+    log('date: $date, jam: $time');
+    // params['date'] = '2024-09-09';
+    // params['time'] = '10:00';
+    params['date'] = date;
+    params['time'] = time;
     attendanceBloc = AttendanceBloc();
-    attendanceBloc!.add(GetScheduleEvent('2024-01-20T08:00:00'));
+    attendanceBloc!.add(GetScheduleByDateEvent(params));
     userLatLng = HomeScreen.userLatLng;
-    setDistance();
-    // attendanceBloc!.add(GetScheduleEvent(DateTime.now()));
-    // rsaUtil = RSAAlgorithmUtils();
-    // keyPair = rsaUtil.generateKeyPair();
+    // setDistance();
+    rsaAlgorithm.initializeRSA();
     super.initState();
-    // controller!.resumeCamera();
   }
 
   // In order to get hot reload to work we need to pause the camera if the platform
@@ -80,72 +100,55 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final publicKey = keyPair!.publicKey;
-    // final privateKey = keyPair!.privateKey;
-    const message = 'Hello RSA';
-
-    //Encrypt using the public key
-    // final encryptedMessage = rsaUtil.encrypt(message, publicKey);
-    // log('Encrypted message: $encryptedMessage');
-
-    //Decrypt using the private key
-    // final decryptedMessage = rsaUtil.decrypt(encryptedMessage, privateKey);
-    // log('Decrypt message: $decryptedMessage');
-    return Scaffold(body: _buildView(context)
-        //     BlocProvider(
-        //   create: (context) => attendanceBloc!,
-        //   child: BlocConsumer<AttendanceBloc, AttendanceState>(
-        //       builder: (context, state) {
-        //     if (state is GetScheduleLoadedState) {
-        //       return _buildView(context);
-        //     }
-        //     return Container();
-        //   }, listener: (context, state) {
-        //     if (state is GetScheduleLoadedState) {
-        //       log(state.toString());
-        //       idSchedule = state.data!.id!;
-        //       setState(() {
-        //         scheduleModel = state.data;
-        //       });
-        //     } else if (state is GetScheduleEmptyState) {
-        //       log(state.toString());
-        //     } else if (state is GetScheduleErrorState) {
-        //       log(state.toString());
-        //     } else if (state is PostAttendanceLoadingState) {
-        //       snackbarMessage(text: 'Memuat...');
-        //     } else if (state is PostAttendanceLoadedState) {
-        //       showToast('Sukses');
-        //       Navigator.pop(context);
-        //       // if (state.data.scan!.isScan == null)
-        //       //   {
-        //       //     showToast('Sukses'),
-        //       //     // showDetailTicket(state.data, hasRedeemed: false)
-        //       //   }
-        //       // else
-        //       // {showDetailTicket(state.data, hasRedeemed: true)}
-        //     } else if (state is PostAttendanceErrorState) {
-        //       snackbarMessage(
-        //         text: 'Error to load',
-        //         colors: Colors.red,
-        //       );
-        //       openCamera();
-        //     } else if (state is PostAttendanceFailedState) {
-        //       snackbarMessage(
-        //         text: 'Failed to load',
-        //         colors: Colors.red[900],
-        //       );
-        //       openCamera();
-        //     }
-        //   }),
-        // )
-        );
+    return Scaffold(
+        body: BlocProvider(
+      create: (context) => attendanceBloc!,
+      child: BlocConsumer<AttendanceBloc, AttendanceState>(
+          builder: (context, state) {
+        return statePageView(stateType);
+      }, listener: (context, state) {
+        log('state: $state');
+        if (state is GetScheduleLoadingState) {
+          stateType = 'loading';
+        } else if (state is GetOneScheduleLoadedState) {
+          stateType = 'loaded';
+          schedule = state.data!.schedule;
+          schoolLatLng =
+              LatLng(schedule!.labRoom!.lat!, schedule!.labRoom!.lng!);
+          setDistance();
+        } else if (state is GetScheduleEmptyState) {
+          stateType = 'empty';
+        } else if (state is GetScheduleErrorState) {
+          stateType = 'error';
+        } else if (state is PostAttendanceLoadingState) {
+          snackbarMessage(text: 'Memuat...');
+        } else if (state is PostAttendanceLoadedState) {
+          stateType = 'attendance success';
+        } else if (state is PostAttendanceErrorState) {
+          snackbarMessage(
+            text: 'Error to load',
+            colors: Colors.red,
+          );
+          openCamera();
+        } else if (state is PostAttendanceFailedState) {
+          snackbarMessage(
+            text: 'Failed to load',
+            colors: Colors.red[900],
+          );
+          openCamera();
+        } else if (state is NoInternetConnectionState) {
+          stateType = 'no internet connection';
+        }
+      }),
+    ));
   }
 
   setDistance() {
     log('SET DISTANCE LOADED');
+    log('lab lat lng: $schoolLatLng');
     setState(() {
       distance =
-          ((SphericalUtil.computeDistanceBetween(schoolLatLng, userLatLng!) /
+          ((SphericalUtil.computeDistanceBetween(schoolLatLng!, userLatLng!) /
                       1000.0) *
                   1000)
               .ceilToDouble();
@@ -166,28 +169,37 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     ));
   }
 
+  statePageView(String? type) {
+    if (type == 'loading') {
+      return loading();
+    } else if (type == 'loaded') {
+      return _buildView(context);
+    } else if (type == 'empty') {
+      return IllustrationWidget(
+        type: IllustrationWidgetType.empty,
+        description: 'Data Jadwal Kosong',
+      );
+    } else if (type == 'error') {
+      return IllustrationWidget(
+        type: IllustrationWidgetType.error,
+        textButton: 'Muat Ulang',
+        onButtonTap: () {
+          attendanceBloc!.add(GetScheduleByDateEvent(params));
+        },
+      );
+    } else if (type == 'attendance success') {
+      return IllustrationWidget(type: IllustrationWidgetType.success);
+    } else if (type == 'no internet connection') {
+      return IllustrationWidget(
+        type: IllustrationWidgetType.notConnection,
+        onButtonTap: () {
+          attendanceBloc!.add(GetScheduleByDateEvent(params));
+        },
+      );
+    }
+  }
+
   _buildView(BuildContext context) {
-    // log(scheduleModel!.roomLab!);
-    String formatedDate =
-        DateFormat('dd-MM-yyyy HH:mm:ss').format(scheduleModel!.day!.toLocal());
-    DateTime date = scheduleModel!.day!.toLocal();
-    String oneHourBefore = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime(
-            date.year,
-            date.month,
-            date.day,
-            date.hour,
-            date.minute,
-            date.second)
-        .subtract(const Duration(hours: 1)));
-    String oneHourAfter = DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime(
-            date.year,
-            date.month,
-            date.day,
-            date.hour,
-            date.minute,
-            date.second)
-        .add(const Duration(minutes: 30)));
-    log('Date: $formatedDate, before: $oneHourBefore, after: $oneHourAfter');
     return WillPopScope(
         onWillPop: willPopCallback,
         child: Stack(children: [
@@ -238,7 +250,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     ),
                     IconButton(
                         onPressed: () {
-                          // informationDialog();
+                          informationDialog();
                         },
                         icon: const Icon(
                           Icons.info_outline_rounded,
@@ -247,13 +259,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  scheduleModel!.status == true
-                      ? "Arahkan kamera ke Qr-code yang ada di laboratorium"
-                      : 'Tidak bisa melakukan absensi karena jadwal belum aktif',
-                  style: const TextStyle(
+                  "Arahkan kamera ke Qr-code yang ada di laboratorium",
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -271,11 +281,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   width: 200,
                   child: Button(
                     color: Pallete.border,
-                    textColor: Colors.white,
-                    text: 'Batal scan',
-                    press: () {
-                      Navigator.pop(context);
-                    },
+                    text: cameraIsPause ? 'Coba Lagi' : 'Batal Scan',
+                    press: cameraIsPause
+                        ? () {
+                            resumeCamera();
+                          }
+                        : () {
+                            Navigator.pop(context);
+                          },
                   )),
             ],
           ),
@@ -291,15 +304,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = MediaQuery.of(context).size.width / 1.5;
-    // To ensure the Scanner view is properly sizes after rotationp
-    // we need to listen for Flutter SizeChanged notification and update controller
     return QRView(
       key: qrKey,
       onQRViewCreated: _onQRViewCreated,
       overlay: QrScannerOverlayShape(
-          borderColor: Pallete.primary,
+          borderColor: Pallete.border,
           borderRadius: 10,
           borderLength: 15,
           borderWidth: 10,
@@ -322,23 +332,63 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         result = scanData;
         log('SCANNED ${result!.code}');
       });
+      decryptLabRoom(result!.code!);
       // FlutterBeep.beep();
+      attendanceStatus = getTimeAttendance(DateTime.now());
+      // attendanceStatus = getTimeAttendance(DateTime.parse(timeNow!));
+      log('status: $attendanceStatus');
+      // logic attendance
       if (!isTooFar) {
         log('lokasi sesuai');
-        if (result!.code == scheduleModel!.roomLab) {
-          postScan(result!.code!);
+        if (labName == schedule!.labRoom!.labName) {
+          if (dateNow == schedule!.date) {
+            if (attendanceStatus == AttendanceStatus.notAllowed) {
+              showToastError('Saat ini anda belum bisa melakukan absensi');
+            } else if (attendanceStatus == AttendanceStatus.absent) {
+              showToastError(
+                  'Anda tidak bisa melakukan absensi \nWaktu absensi sudah habis');
+            } else {
+              postScan();
+            }
+          } else {
+            showToastError('Anda tidak bisa melakukan absensi hari ini');
+          }
         } else {
-          showToastError('Ruangan tidak sesuai');
+          showToastError('Ruang Lab Tidak Sesuai');
         }
       } else {
-        showToastError('Absensi Gagal Anda berada diluar lokasi');
+        showToastError('Absensi Gagal... \nLokasi Anda Terlalu Jauh Dari Lab');
         log('Anda berada diluar lokasi');
       }
     });
+  }
 
-    // } else {
-    //   snackbarMessage(text: 'Attendance Failed because schedule no active yet');
-    // }
+  AttendanceStatus getTimeAttendance(DateTime attendanceTime) {
+    DateTime time = DateFormat('HH:mm').parse(schedule!.beginTime!);
+    // DateTime scheduleTime = DateTime.parse(schedule!.beginTime!);
+    DateTime scheduleTime = DateTime(attendanceTime.year, attendanceTime.month,
+        attendanceTime.day, time.hour, time.minute);
+    DateTime allowedStartTime = scheduleTime.subtract(const Duration(hours: 1));
+    DateTime lateThreshold = scheduleTime.add(const Duration(minutes: 15));
+    DateTime absentThreshold = scheduleTime.add(const Duration(minutes: 30));
+    if (attendanceTime.isBefore(allowedStartTime)) {
+      return AttendanceStatus.notAllowed;
+    } else if (attendanceTime.isBefore(scheduleTime)) {
+      return AttendanceStatus.onTime;
+    } else if (attendanceTime.isBefore(lateThreshold)) {
+      return AttendanceStatus.onTime;
+    } else if (attendanceTime.isBefore(absentThreshold)) {
+      return AttendanceStatus.late;
+    } else {
+      return AttendanceStatus.absent;
+    }
+  }
+
+  decryptLabRoom(String encryptedMessage) {
+    log('encryptd message: $encryptedMessage');
+    labName = encryptedMessage;
+    // labName = rsaAlgorithm.onDecrypt(encryptedMessage);
+    log('lab name: $labName');
   }
 
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
@@ -366,204 +416,97 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   void pauseCamera() async {
     await controller?.pauseCamera();
+    cameraIsPause = true;
   }
 
   void resumeCamera() async {
     await controller?.resumeCamera();
   }
 
-  postScan(String data) async {
+  postScan() async {
+    String attendance = '';
     Map<String, dynamic> body = {};
-    String studentId = await LocalStorageServices.getStudentId();
-    body['id_schedule'] = idSchedule;
-    body['id_student'] = studentId;
-    body['status_attendance'] = 'present';
+    switch (attendanceStatus) {
+      case AttendanceStatus.onTime:
+        attendance = 'present';
+        break;
+      case AttendanceStatus.late:
+        attendance = 'late';
+        break;
+      case AttendanceStatus.absent:
+        attendance = 'absent';
+        break;
+      default:
+        attendance = 'absent';
+    }
+    body['id_teacher'] = schedule!.idTeacher;
+    body['id_schedule'] = schedule!.id;
+    body['id_lab_room'] = schedule!.idLabRoom;
+    body['status_attendance'] = rsaAlgorithm.onEncrypt(attendance);
 
     log(body.toString());
     attendanceBloc!.add(PostAttendanceEvent(params: body));
   }
 
-  // informationDialog() {
-  //   showDialog(
-  //     barrierDismissible: false,
-  //     context: context,
-  //     builder: (context) {
-  //       return DialogBox(
-  //         title: 'Informasi!',
-  //         descriptions:
-  //             // widget.argument!.scanMode == ScanMode.exchange
-  //             //     ? 'Scan barcode ini berfungsi untuk melakukan penukaran E-Ticket menjadi gelang.'
-  //             //     :
-  //             'Scan barcode ini berfungsi untuk melakukan validasi kedatangan pelanggan.',
-  //       );
-  //     },
-  //   );
-  // }
+  informationDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return DialogBox(
+          title: 'Informasi!',
+          descriptions:
+              'Scan qr code ini berfungsi untuk melakukan absensi praktikum untuk guru pengajar.',
+          descriptionsWidget: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              divide10,
+              const Text(
+                'Keterangan Absensi: ',
+                style: TextStyle(
+                    color: Pallete.greyDark, fontWeight: FontWeight.w600),
+              ),
+              contentMission(
+                  'Hadir: Jika guru melakukan absensi 1 jam sebelum praktikum dimulai dan setelah 15 menit praktikum dimulai'),
+              contentMission(
+                  'Terlambat: Jika guru melakukan absensi 15 menit atau lebih setelah jam praktikum dimulai'),
+              contentMission(
+                  'Tidak Hadir: Jika guru melakukan absensi lebih dari 30 menit atau lebih setelah jam praktikum dimulai'),
+            ],
+          ),
+          color: Pallete.border,
+        );
+      },
+    );
+  }
+
+  contentMission(String content) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 7),
+          height: 5,
+          width: 5,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+              color: Pallete.greyDark),
+        ),
+        divideW6,
+        Expanded(
+          child: Text(content,
+              textAlign: TextAlign.justify,
+              maxLines: 5,
+              style: const TextStyle(
+                  color: Pallete.greyDark, overflow: TextOverflow.ellipsis)),
+        ),
+      ],
+    );
+  }
 
   Future<bool> willPopCallback() async {
     resumeCamera();
     Navigator.pop(context, true);
     return true;
   }
-
-  // showDialogExisting({required String title, required String description}) {
-  //   return showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return DialogBox(
-  //         title: title,
-  //         descriptions: description,
-  //         onOkText: 'Tutup',
-  //         onOkTap: () {
-  //           Navigator.pop(context);
-  //           setState(() {
-  //             openCamera();
-  //           });
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
-  // showDetailTicket(ScanExchangeResult data, {bool? hasRedeemed}) {
-  //   bottomSheet(
-  //       title: 'Detail Pesanan',
-  //       context: context,
-  //       enableDrag: false,
-  //       onTapOk: () {
-  //         setState(() {
-  //           Navigator.pop(context);
-  //           openCamera();
-  //         });
-  //       },
-  //       height: MediaQuery.of(context).size.height * 0.7,
-  //       child: Expanded(
-  //           child: ListView(
-  //         children: [
-  //           if (hasRedeemed == true)
-  //             ListTile(
-  //               title: TextWidget(
-  //                 'Admin : ${data.scan!.createdBy!.name}',
-  //                 size: TextWidgetSize.h6,
-  //                 weight: FontWeight.w600,
-  //                 textColor: Pallete.greyDark,
-  //               ),
-  //               subtitle: TextWidget(
-  //                 'Ditukar pada ${DateFormat('yyyy-MM-dd HH:mm:ss').format(data.scan!.createdAt!)}',
-  //                 size: TextWidgetSize.h6,
-  //                 weight: FontWeight.w600,
-  //                 textColor: Colors.red,
-  //                 maxLines: 1,
-  //               ),
-  //               trailing: Container(
-  //                 padding:
-  //                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-  //                 decoration: const BoxDecoration(
-  //                     borderRadius:
-  //                         BorderRadius.all(Radius.circular(Dimens.size128)),
-  //                     color: Colors.green),
-  //                 child: TextWidget(
-  //                   'Sudah ditukar',
-  //                   size: TextWidgetSize.h8,
-  //                   weight: FontWeight.w600,
-  //                   textColor: Colors.white,
-  //                 ),
-  //               ),
-  //             ),
-  //           ListTile(
-  //             title: TextWidget(
-  //               'Nama Pemesan',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.greyDark,
-  //             ),
-  //             subtitle: TextWidget(
-  //               '${data.scan!.user!.fullname}'.toTitleCase(),
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.primary,
-  //               maxLines: 1,
-  //             ),
-  //           ),
-  //           divideThick(),
-  //           ListTile(
-  //             title: TextWidget(
-  //               'Nomor HP',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.greyDark,
-  //             ),
-  //             subtitle: TextWidget(
-  //               data.scan!.user!.phone ?? '-',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.primary,
-  //               maxLines: 1,
-  //             ),
-  //           ),
-  //           divideThick(),
-  //           ListTile(
-  //             title: TextWidget(
-  //               'Email',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.greyDark,
-  //             ),
-  //             subtitle: TextWidget(
-  //               data.scan!.user!.email ?? '-',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.primary,
-  //               maxLines: 1,
-  //             ),
-  //           ),
-  //           divideThick(),
-  //           ListTile(
-  //             contentPadding:
-  //                 const EdgeInsets.symmetric(horizontal: Dimens.size16),
-  //             title: TextWidget(
-  //               'Detail Tiket :',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.greyDark,
-  //             ),
-  //             subtitle: TextWidget(
-  //               data.scan!.orderDetail!.isEmpty ? '-' : '',
-  //               size: TextWidgetSize.h6,
-  //               weight: FontWeight.w600,
-  //               textColor: Pallete.primary,
-  //               maxLines: 1,
-  //             ),
-  //           ),
-  //           ListView.separated(
-  //             physics: const NeverScrollableScrollPhysics(),
-  //             shrinkWrap: true,
-  //             itemCount: data.scan!.orderDetail!.length,
-  //             itemBuilder: (BuildContext context, int index) {
-  //               var subTotal = data.scan!.orderDetail![index];
-  //               return ListTile(
-  //                 title: TextWidget(
-  //                   '${subTotal.ticket!.title}',
-  //                   size: TextWidgetSize.h6,
-  //                   weight: FontWeight.w500,
-  //                   textColor: Pallete.primary,
-  //                   maxLines: 2,
-  //                   ellipsed: true,
-  //                 ),
-  //                 trailing: TextWidget(
-  //                   '${rupiahFormatter(value: subTotal.totalPrice.toString())}\n(x${subTotal.quantity})',
-  //                   size: TextWidgetSize.h6,
-  //                   textAlign: TextAlign.right,
-  //                   weight: FontWeight.w500,
-  //                   textColor: Pallete.primary,
-  //                 ),
-  //               );
-  //             },
-  //             separatorBuilder: (BuildContext context, int index) {
-  //               return divideThick();
-  //             },
-  //           ),
-  //         ],
-  //       )));
-  // }
 }

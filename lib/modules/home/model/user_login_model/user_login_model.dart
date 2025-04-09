@@ -1,21 +1,17 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'teacher.dart';
+import 'user.dart';
 
 part 'user_login_model.g.dart';
 
 @JsonSerializable()
 class UserLoginModel {
-  String? email;
-  String? role;
-  Teacher? teacher;
+  User? user;
 
-  UserLoginModel({this.email, this.role, this.teacher});
+  UserLoginModel({this.user});
 
   @override
-  String toString() {
-    return 'UserLoginModel(email: $email, role: $role, teacher: $teacher)';
-  }
+  String toString() => 'UserLoginModel(user: $user)';
 
   factory UserLoginModel.fromJson(Map<String, dynamic> json) {
     return _$UserLoginModelFromJson(json);
@@ -24,14 +20,10 @@ class UserLoginModel {
   Map<String, dynamic> toJson() => _$UserLoginModelToJson(this);
 
   UserLoginModel copyWith({
-    String? email,
-    String? role,
-    Teacher? teacher,
+    User? user,
   }) {
     return UserLoginModel(
-      email: email ?? this.email,
-      role: role ?? this.role,
-      teacher: teacher ?? this.teacher,
+      user: user ?? this.user,
     );
   }
 }

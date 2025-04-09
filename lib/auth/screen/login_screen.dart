@@ -1,7 +1,5 @@
 import 'dart:developer';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lab_attendance_mobile_teacher/auth/bloc/auth_bloc.dart';
@@ -10,10 +8,12 @@ import 'package:lab_attendance_mobile_teacher/component/background.dart';
 import 'package:lab_attendance_mobile_teacher/component/button/button.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/custom_text_field.dart';
+import 'package:lab_attendance_mobile_teacher/component/illustration/illustration_widget.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/component/rsa_algorithm.dart';
 import 'package:lab_attendance_mobile_teacher/modules/dashboard/screen/dashboard_screen.dart';
 import 'package:lab_attendance_mobile_teacher/services/local_storage_services.dart';
-import 'package:lab_attendance_mobile_teacher/services/session/session_provider.dart';
+import 'package:lab_attendance_mobile_teacher/services/session/session_manager.dart';
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
 import 'package:provider/provider.dart';
 
@@ -37,16 +37,18 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isEmail = false;
   AuthUserBloc? authUserBloc;
   DateTime? currentBackPressTime;
+  RsaAlgorithm rsaAlgorithm = RsaAlgorithm();
 
   @override
   void initState() {
+    rsaAlgorithm.initializeRSA();
     authUserBloc = AuthUserBloc();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final sessionProvider = Provider.of<SessionProvider>(context);
+    final sessionManager = Provider.of<SessionManager>(context);
     return Scaffold(
       body: WillPopScope(
         onWillPop: onExit,
@@ -55,11 +57,21 @@ class _LoginScreenState extends State<LoginScreen> {
               create: (context) => authUserBloc!,
               child: BlocConsumer<AuthUserBloc, AuthUserState>(
                 builder: (BuildContext context, state) {
-                  return buildView(context);
+                  if (state is NoInternetConnectionState) {
+                    isLoading = false;
+                    return IllustrationWidget(
+                      type: IllustrationWidgetType.notConnection,
+                      onButtonTap: () {
+                        login();
+                      },
+                    );
+                  } else {
+                    return buildView(context);
+                  }
                 },
                 listener: (BuildContext context, Object? state) {
+                  log(state.toString());
                   if (state is PostLoginLoadingState) {
-                    log('login loading');
                     isLoading = true;
                   } else if (state is PostLoginLoadedState) {
                     log('login loaded');
@@ -67,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     LocalStorageServices.setUserId(state.authModel.user!.id);
                     LocalStorageServices.setAccessToken(state.authModel.token);
                     LocalStorageServices.setIsLogin(true);
-                    sessionProvider.saveSession(state.authModel.token!);
+                    sessionManager.login(state.authModel.token!);
                     Navigator.pushNamedAndRemoveUntil(
                         context, DashboardScreen.path, (route) => false);
                   } else if (state is PostLoginFailedState) {
@@ -91,17 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Stack(
       children: [
         const Background(),
-        Container(
-          height: 200,
-          width: double.infinity,
-          alignment: Alignment.center,
-          child: const Text('Login',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white)),
-        ),
         Form(
           key: _formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -111,10 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
             });
           },
           child: SingleChildScrollView(
-            padding: EdgeInsets.only(top: 140, left: 16, right: 16, bottom: 16),
+            padding: const EdgeInsets.only(
+                top: 140, left: 16, right: 16, bottom: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const Text('Login',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+                divide32,
                 CustomTextField(
                   label: isEmail ? 'Email' : 'NIP',
                   validator: isEmail ? requiredEmail : requiredValidator,
@@ -200,11 +209,11 @@ class _LoginScreenState extends State<LoginScreen> {
   login() {
     Map<String, dynamic> body = {};
     if (isEmail) {
-      body['email'] = emailNipController.text;
+      body['email'] = rsaAlgorithm.onEncrypt(emailNipController.text);
     } else {
-      body['nip'] = emailNipController.text;
+      body['nip'] = rsaAlgorithm.onEncrypt(emailNipController.text);
     }
-    body['password'] = passwordController.text;
+    body['password'] = rsaAlgorithm.onEncrypt(passwordController.text);
     body['via'] = isEmail ? 'email' : 'nip';
 
     authUserBloc!.add(PostLoginUserEvent(body));

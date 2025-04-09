@@ -4,6 +4,8 @@ import 'package:lab_attendance_mobile_teacher/component/button/button.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 import 'package:lab_attendance_mobile_teacher/component/svg_image.dart';
+import 'package:lab_attendance_mobile_teacher/modules/home/screen/home_screen.dart';
+import 'package:lottie/lottie.dart';
 
 enum IllustrationWidgetType {
   notFound,
@@ -11,6 +13,7 @@ enum IllustrationWidgetType {
   error,
   empty,
   notLogin,
+  notConnection
 }
 
 enum IllustrationMode { vertical, horizontal }
@@ -25,6 +28,8 @@ class IllustrationWidget extends StatelessWidget {
   IllustrationWidgetType? type;
   IllustrationMode? mode;
   bool? showButton;
+  bool isSvg;
+  bool isLottie;
   IllustrationWidget(
       {super.key,
       this.illustration,
@@ -35,6 +40,8 @@ class IllustrationWidget extends StatelessWidget {
       this.width,
       this.onButtonTap,
       this.showButton = false,
+      this.isSvg = true,
+      this.isLottie = false,
       this.mode = IllustrationMode.vertical});
 
   @override
@@ -64,23 +71,27 @@ class IllustrationWidget extends StatelessWidget {
         break;
 
       case IllustrationWidgetType.success:
-        illustration = 'ic_illustration_success.svg';
-        description = 'Your registration is success!';
-        title = 'Success';
+        illustration = 'animation-1.json';
+        description = 'Anda Telah Berhasil Melakukan Absensi';
+        title = 'Absensi Sukses';
+        isSvg = false;
+        isLottie = true;
         showButton = true;
         onButtonTap = () {
-          Navigator.pop(context);
+          Navigator.pushNamed(context, HomeScreen.path);
+          // Navigator.pop(context);
         };
-        textButton = 'Back to login';
+        textButton = 'Kembali ke Home';
         break;
 
       case IllustrationWidgetType.error:
-        illustration = 'ic_illustration_error.svg';
+        illustration = 'ic_illustration_error.png';
         description = 'Error to connect to server!';
         title = 'Error';
         showButton = true;
         onButtonTap = onButtonTap;
         textButton = 'Muat Ulang';
+        isSvg = false;
         break;
 
       case IllustrationWidgetType.empty:
@@ -88,6 +99,15 @@ class IllustrationWidget extends StatelessWidget {
         title = title ?? 'Data Kosong!';
         description = description ?? 'Data Kosong';
         showButton = textButton != null ? true : false;
+        break;
+      case IllustrationWidgetType.notConnection:
+        illustration = 'ic_illustration_no_internet.png';
+        title = title ?? 'Tidak Ada Koneksi Internet';
+        description = description ?? 'Silahkan periksa koneksi internet Anda.';
+        showButton = true;
+        onButtonTap = onButtonTap;
+        textButton = textButton ?? 'Muat Ulang';
+        isSvg = false;
         break;
       default:
     }
@@ -141,11 +161,20 @@ class IllustrationWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgImage(
-                '$illustration',
-                width: width ?? 250,
-                // height: 300,
-              ),
+              if (isSvg)
+                SvgImage(
+                  '$illustration',
+                  width: width ?? 250,
+                  // height: 300,
+                )
+              else if (isLottie)
+                Lottie.asset('assets/lotties/$illustration')
+              else
+                Image.asset(
+                  'assets/images/pngs/$illustration',
+                  width: 270,
+                  height: 270,
+                ),
               divide10,
               Text(
                 '$title',

@@ -1,5 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'lab_room.dart';
+import 'schedule.dart';
+import 'student.dart';
+
 part 'attendance_student.g.dart';
 
 @JsonSerializable()
@@ -15,6 +19,10 @@ class AttendanceStudent {
   String? statusAttendance;
   DateTime? createdAt;
   DateTime? updatedAt;
+  Student? student;
+  Schedule? schedule;
+  @JsonKey(name: 'lab_room')
+  LabRoom? labRoom;
 
   AttendanceStudent({
     this.id,
@@ -24,11 +32,14 @@ class AttendanceStudent {
     this.statusAttendance,
     this.createdAt,
     this.updatedAt,
+    this.student,
+    this.schedule,
+    this.labRoom,
   });
 
   @override
   String toString() {
-    return 'AttendanceStudent(id: $id, idStudent: $idStudent, idSchedule: $idSchedule, idLabRoom: $idLabRoom, statusAttendance: $statusAttendance, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AttendanceStudent(id: $id, idStudent: $idStudent, idSchedule: $idSchedule, idLabRoom: $idLabRoom, statusAttendance: $statusAttendance, createdAt: $createdAt, updatedAt: $updatedAt, student: $student, schedule: $schedule, labRoom: $labRoom)';
   }
 
   factory AttendanceStudent.fromJson(Map<String, dynamic> json) {
@@ -45,6 +56,9 @@ class AttendanceStudent {
     String? statusAttendance,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Student? student,
+    Schedule? schedule,
+    LabRoom? labRoom,
   }) {
     return AttendanceStudent(
       id: id ?? this.id,
@@ -54,6 +68,9 @@ class AttendanceStudent {
       statusAttendance: statusAttendance ?? this.statusAttendance,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      student: student ?? this.student,
+      schedule: schedule ?? this.schedule,
+      labRoom: labRoom ?? this.labRoom,
     );
   }
 }

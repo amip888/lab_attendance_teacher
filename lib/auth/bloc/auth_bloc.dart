@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:lab_attendance_mobile_teacher/auth/model/auth_model/auth_model.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
@@ -33,8 +32,12 @@ class AuthUserBloc extends Bloc<AuthUserEvent, AuthUserState> {
           emit(const PostRegisterFailedState('Daftar User Gagal'));
         }
       }
-    } on DioException catch (error) {
-      emit(PostRegisterErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(PostRegisterErrorState(error.toString()));
+      }
     }
   }
 
@@ -53,20 +56,23 @@ class AuthUserBloc extends Bloc<AuthUserEvent, AuthUserState> {
     } catch (error) {
       log('error login: $error');
       String message = '';
-      if (ApiService.errorCode == '401' &&
-          ApiService.error == 'Your email is not registered yet') {
-        message = 'Email tidak terdaftar';
-      } else if (ApiService.errorCode == '401' &&
-          ApiService.error == 'Wrong password') {
-        message = 'Password Salah';
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
       } else {
-        message = error.toString();
+        if (ApiService.errorCode == '401' &&
+            ApiService.error == 'Your email not registered') {
+          message = 'Email tidak terdaftar';
+        } else if (ApiService.errorCode == '401' &&
+            ApiService.error == 'You aren`t registered') {
+          message = 'Anda belum terdaftar';
+        } else if (ApiService.errorCode == '401' &&
+            ApiService.error == 'Wrong password') {
+          message = 'Password Salah';
+        } else {
+          message = error.toString();
+        }
+        emit(PostLoginErrorState(message));
       }
-      emit(PostLoginErrorState(message));
     }
-    // on DioException catch (error) {
-    //   log('error login: $error');
-    //   emit(PostLoginErrorState(error.message!));
-    // }
   }
 }

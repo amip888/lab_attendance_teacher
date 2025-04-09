@@ -23,3 +23,4 @@ final divideW20 = Container(width: 20);
 final divideW32 = Container(width: 32);
 final divideW48 = Container(width: 48);
 final divideW56 = Container(width: 56);
+final divideW64 = Container(width: 64);

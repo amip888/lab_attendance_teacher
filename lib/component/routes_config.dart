@@ -10,12 +10,10 @@ import 'package:lab_attendance_mobile_teacher/modules/dashboard/screen/dashboard
 import 'package:lab_attendance_mobile_teacher/modules/home/screen/home_screen.dart';
 import 'package:lab_attendance_mobile_teacher/component/illustration/not_found_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/screen/profile_shool_screen.dart';
-import 'package:lab_attendance_mobile_teacher/modules/notification/screen/notification_screen.dart';
+import 'package:lab_attendance_mobile_teacher/modules/home/screen/notification_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/add_lab_room_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/lab_room_detail_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/lab_rooms_screen.dart';
-import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/add_scedule_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/day_list_schedule_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/scedule_detail_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/scedule_screen.dart';
@@ -36,13 +34,13 @@ class RoutesConfig {
       case HomeScreen.path:
         return goTo(const HomeScreen());
       case AttendanceScreen.path:
-        return goTo(const AttendanceScreen());
+        return goTo(AttendanceScreen(argument: argument as AttendanceArgument));
       case HistoryAttendanceScreen.path:
         return goTo(const HistoryAttendanceScreen());
       case AttendanceDetailScreen.path:
-        return goTo(const AttendanceDetailScreen(
-            // argument: argument as AttendanceDetailArgument,
-            ));
+        return goTo(AttendanceDetailScreen(
+          argument: argument as AttendanceDetailArgument,
+        ));
       case ProfileSchoolScreen.path:
         return goTo(const ProfileSchoolScreen());
       case ListUserScreen.path:
@@ -65,16 +63,11 @@ class RoutesConfig {
         return goTo(const SchedulesScreen());
       case DayListScheduleScreen.path:
         return goTo(const DayListScheduleScreen());
-      case AddScheduleScreen.path:
-        return goTo(
-            AddScheduleScreen(argument: argument as AddScheduleArgument));
       case ScheduleDetailScreen.path:
         return goTo(
             ScheduleDetailScreen(argument: argument as ScheduleDetailArgument));
       case LabRoomsScreen.path:
         return goTo(const LabRoomsScreen());
-      case AddLabRoomScreen.path:
-        return goTo(AddLabRoomScreen(argument: argument as AddLabRoomArgument));
       case LabRoomDetailScreen.path:
         return goTo(
             LabRoomDetailScreen(argument: argument as LabRoomDetailArgument));

@@ -38,6 +38,8 @@ class DialogBox extends StatefulWidget {
   final String? topImage;
   final String? suffixSymbol;
   final Color? color;
+  final bool enableOkButton;
+  final bool isSchedule;
   final String? Function(String?)? validator;
   const DialogBox(
       {super.key,
@@ -74,7 +76,9 @@ class DialogBox extends StatefulWidget {
       this.isPrefixPhone = false,
       this.decimalNumber = false,
       this.suffixSymbol,
-      this.validator});
+      this.validator,
+      this.enableOkButton = false,
+      this.isSchedule = false});
 
   @override
   _DialogBoxState createState() => _DialogBoxState();
@@ -87,10 +91,8 @@ class _DialogBoxState extends State<DialogBox> {
 
   @override
   void initState() {
-    if (widget.isEditText == true) {
-      if (widget.initialValue != null) {
-        widget.inputController!.text = widget.initialValue!;
-      }
+    if (widget.isSchedule != false) {
+      enableOkButton = widget.enableOkButton;
     } else {
       enableOkButton = true;
     }
@@ -190,8 +192,8 @@ class _DialogBoxState extends State<DialogBox> {
                       : null,
                   width: double.infinity,
                   borderColor: Colors.transparent,
-                  color: enableOkButton == false
-                      ? Colors.transparent
+                  color: enableOkButton
+                      ? widget.color ?? Colors.transparent
                       : widget.enableCancel
                           ? widget.color ?? Pallete.primary
                           : widget.isOkPrimary

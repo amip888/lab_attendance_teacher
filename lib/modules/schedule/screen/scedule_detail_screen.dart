@@ -1,18 +1,13 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
-import 'package:lab_attendance_mobile_teacher/component/iconly.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule.dart';
-import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/add_scedule_screen.dart';
 
 class ScheduleDetailArgument {
   final Schedule? schedule;
   final String? day;
-  final String dayKey;
-  ScheduleDetailArgument({this.schedule, this.day, required this.dayKey});
+  ScheduleDetailArgument({this.schedule, this.day});
 }
 
 class ScheduleDetailScreen extends StatefulWidget {
@@ -44,22 +39,6 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
           ScheduleDetailScreen.title,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Iconly.editSquare,
-              size: 23,
-              color: Pallete.border,
-            ),
-            onPressed: () {
-              Navigator.pushNamed(context, AddScheduleScreen.path,
-                  arguments: AddScheduleArgument(
-                    title: 'Edit Jadwal Praktikum',
-                    dayKey: widget.argument!.dayKey,
-                  ));
-            },
-          ),
-        ],
         backgroundColor: Pallete.primary2,
         centerTitle: true,
         automaticallyImplyLeading: false,
@@ -68,18 +47,24 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Center(
-              child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: NetworkImagePlaceHolder(
-                    imageUrl: widget.argument!.schedule!.teacher!.filePath,
-                    width: 150,
-                    height: 150,
-                  )),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.amber, width: 2),
+                    borderRadius: BorderRadius.circular(100)),
+                child: NetworkImagePlaceHolder(
+                  imageUrl: widget.argument!.schedule!.teacher!.filePath,
+                  width: 150,
+                  height: 150,
+                  isCircle: true,
+                ),
+              ),
             ),
-            divide32,
-            const Text('Data Jadwal'),
+            divide64,
+            const Text('Data Jadwal Praktikum'),
             divide8,
             Container(
               padding: const EdgeInsets.all(12),
@@ -136,7 +121,9 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 10),
                         decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: schedule!.status == true
+                                ? Colors.green
+                                : Colors.red,
                             borderRadius: BorderRadius.circular(10)),
                         child: Text(
                           schedule!.status == true ? 'Aktif' : 'Belum Aktif',
@@ -145,32 +132,7 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
                       ),
                     ],
                   ),
-                  divide8,
                 ],
-              ),
-            ),
-            divide16,
-            const Text('Status Absesni'),
-            divide8,
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  border: Border.all(color: Pallete.border, width: 2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Belum Melakukan Absensi',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Icon(Icons.arrow_forward_ios_rounded)
-                  ],
-                ),
               ),
             ),
           ],

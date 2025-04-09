@@ -16,4 +16,5 @@ class Pallete {
   static const Color accent = Color(0xFFAB0505);
   static const Color greyDark = Color(0xFF6B7588);
   static const Color a = Color(0xFF2F334C);
+  static const Color background = Color(0xFFC9CFD3);
 }

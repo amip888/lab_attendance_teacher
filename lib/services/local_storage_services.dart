@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageServices {
   static const String kThemeMoode = 'initial dark mode';
   static const String kAccessToken = 'access_token';
+  static const String kTokenFcm = 'token_fcm';
   static const String kUserId = 'user_id';
-  static const String kStudentId = 'student_id';
   static const String kTeacherId = 'teacher_id';
   static const String kIsLogin = 'isLogin';
+  static const String kIsDecrypt = 'isDecrypt';
   static const String ksessionToken = 'session_token';
   Timer? _sessionTimer;
   Function? _onSessionTimeoutCallback;
@@ -44,16 +44,6 @@ class LocalStorageServices {
     return prefs.setString(kTeacherId, value ?? '');
   }
 
-  static Future<String> getStudentId() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(kStudentId) ?? '';
-  }
-
-  static Future<bool> setStudentId(String? value) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.setString(kStudentId, value ?? '');
-  }
-
   static Future<String> getAccessToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(kAccessToken) ?? '';
@@ -62,6 +52,16 @@ class LocalStorageServices {
   static Future<bool> setAccessToken(String? value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.setString(kAccessToken, value ?? '');
+  }
+
+  static Future<String> getTokenFCM() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(kTokenFcm) ?? '';
+  }
+
+  static Future<bool> setTokenFCM(String? value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setString(kTokenFcm, value ?? '');
   }
 
   Future<void> saveSessionToken(String token) async {
@@ -92,10 +92,21 @@ class LocalStorageServices {
     return prefs.setBool(kIsLogin, value);
   }
 
+  static Future<bool> getIsDecrypt() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(kIsDecrypt) ?? false;
+  }
+
+  static Future<bool> setIsDecrypt(bool value) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setBool(kIsDecrypt, value);
+  }
+
   static removeValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove(kAccessToken);
     prefs.remove(kIsLogin);
+    prefs.remove(kIsDecrypt);
     prefs.remove(kUserId);
     prefs.remove(ksessionToken);
   }

@@ -7,8 +7,3 @@ abstract class LabRoomEvent {
 class GetLabRoomEvent extends LabRoomEvent {
   GetLabRoomEvent();
 }
-
-class PostLabRoomEvent extends LabRoomEvent {
-  final Map<String, dynamic>? params;
-  PostLabRoomEvent({this.params});
-}

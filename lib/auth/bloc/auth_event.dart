@@ -4,8 +4,6 @@ abstract class AuthUserEvent {
   const AuthUserEvent();
 }
 
-class GetAuthUserEvent extends AuthUserEvent {}
-
 class PostRegisterUserEvent extends AuthUserEvent {
   Map<String, dynamic> body;
   PostRegisterUserEvent(this.body);
@@ -14,8 +12,4 @@ class PostRegisterUserEvent extends AuthUserEvent {
 class PostLoginUserEvent extends AuthUserEvent {
   Map<String, dynamic> body;
   PostLoginUserEvent(this.body);
-}
-
-class GetTopProductEvent extends AuthUserEvent {
-  GetTopProductEvent();
 }

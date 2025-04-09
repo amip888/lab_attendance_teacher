@@ -13,3 +13,8 @@ class UpdateUserAccountEvent extends AccountEvent {
   final String? idStudent;
   UpdateUserAccountEvent({this.params, this.idStudent});
 }
+
+class PostPINEvent extends AccountEvent {
+  final Map<String, dynamic> params;
+  PostPINEvent(this.params);
+}

@@ -12,7 +12,7 @@ Teacher _$TeacherFromJson(Map<String, dynamic> json) => Teacher(
       name: json['name'] as String?,
       major: json['major'] as String?,
       phone: json['phone'] as String?,
-      gender: json['gender'] as bool?,
+      gender: json['gender'] as String?,
       placeBirth: json['place_birth'] as String?,
       dateBirth: json['date_birth'] as String?,
       address: json['address'] as String?,

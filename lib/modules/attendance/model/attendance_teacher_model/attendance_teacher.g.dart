@@ -1,0 +1,45 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'attendance_teacher.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AttendanceTeacher _$AttendanceTeacherFromJson(Map<String, dynamic> json) =>
+    AttendanceTeacher(
+      id: json['id'] as String?,
+      idTeacher: json['id_teacher'] as String?,
+      idSchedule: json['id_schedule'] as String?,
+      idLabRoom: json['id_lab_room'] as String?,
+      statusAttendance: json['status_attendance'] as String?,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
+      teacher: json['teacher'] == null
+          ? null
+          : Teacher.fromJson(json['teacher'] as Map<String, dynamic>),
+      schedule: json['schedule'] == null
+          ? null
+          : Schedule.fromJson(json['schedule'] as Map<String, dynamic>),
+      labRoom: json['lab_room'] == null
+          ? null
+          : LabRoom.fromJson(json['lab_room'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AttendanceTeacherToJson(AttendanceTeacher instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'id_teacher': instance.idTeacher,
+      'id_schedule': instance.idSchedule,
+      'id_lab_room': instance.idLabRoom,
+      'status_attendance': instance.statusAttendance,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'teacher': instance.teacher,
+      'schedule': instance.schedule,
+      'lab_room': instance.labRoom,
+    };

@@ -73,7 +73,7 @@ void showToast(String msg) {
 void showToastError(String msg) {
   Fluttertoast.showToast(
       msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.red,
@@ -155,6 +155,16 @@ Future<void> changeDate(BuildContext context,
 final kToday = DateTime.now();
 final kFirstDay = DateTime(kToday.year, kToday.month - 12, kToday.day);
 final kLastDay = DateTime(kToday.year, kToday.month + 12, kToday.day);
+
+String formatDayDate(String date) {
+  DateTime initialDay = DateTime.parse(date);
+  String formatDate = DateFormat('dd').format(initialDay);
+  String formatYear = DateFormat('yyyy').format(initialDay);
+  String dayName = formatDay(initialDay);
+  String monthName = formatMonth(initialDay);
+  String day = '$dayName, $formatDate $monthName $formatYear';
+  return day;
+}
 
 formatDay(DateTime initialDate) {
   String day = DateFormat('EEEE').format(initialDate);
@@ -251,7 +261,7 @@ List<Schedule> filterSchedulesByWeek(
   int selectedWeek = selectedDate.weekOfYear;
   return schedules
       .where((element) =>
-          DateFormat('yyyy-MM-dd').parse(element.date!).weekOfYear ==
+          DateFormat('yyyy-MM-dd').parse(element.date!.toString()).weekOfYear ==
           selectedWeek)
       .toList();
 }
@@ -260,9 +270,9 @@ List<Schedule> filterSchedulesByMonth(
     List<Schedule> schedules, DateTime selectedDate) {
   return schedules
       .where((element) =>
-          DateFormat('yyyy-MM-dd').parse(element.date!).year ==
+          DateFormat('yyyy-MM-dd').parse(element.date!.toString()).year ==
               selectedDate.year &&
-          DateFormat('yyyy-MM-dd').parse(element.date!).month ==
+          DateFormat('yyyy-MM-dd').parse(element.date!.toString()).month ==
               selectedDate.month)
       .toList();
 }

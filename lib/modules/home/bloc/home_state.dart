@@ -6,23 +6,72 @@ abstract class HomeState {
 
 class HomeInitial extends HomeState {}
 
-class GetUserLoginLoadingState extends HomeState {
-  GetUserLoginLoadingState();
+class NoInternetConnectionState extends HomeState {
+  NoInternetConnectionState();
 }
 
-class GetUserLoginLoadedState extends HomeState {
-  final UserLoginModel data;
+class GetHomeLoadingState extends HomeState {
+  GetHomeLoadingState();
+}
+
+class GetHomeLoadedState extends HomeState {
+  final UserLoginModel dataUser;
+  final LabRoomModel dataLabRoom;
   final ScheduleModel dataSchedule;
-  const GetUserLoginLoadedState(
-      {required this.data, required this.dataSchedule});
+  final AttendanceTeacherModel dataAttendance;
+  final NotificationModel dataNotification;
+  const GetHomeLoadedState({
+    required this.dataUser,
+    required this.dataLabRoom,
+    required this.dataSchedule,
+    required this.dataAttendance,
+    required this.dataNotification,
+  });
 }
 
-class GetUserLoginErrorState extends HomeState {
+class GetHomeErrorState extends HomeState {
   final String message;
-  const GetUserLoginErrorState(this.message);
+  const GetHomeErrorState(this.message);
 }
 
-class GetUserLoginEmptyState extends HomeState {
+class GetHomeEmptyState extends HomeState {
   final String message;
-  const GetUserLoginEmptyState(this.message);
+  const GetHomeEmptyState(this.message);
+}
+
+class GetNotificationLoadingState extends HomeState {
+  GetNotificationLoadingState();
+}
+
+class GetNotificationLoadedState extends HomeState {
+  final NotificationModel data;
+  const GetNotificationLoadedState(this.data);
+}
+
+class GetNotificationErrorState extends HomeState {
+  final String message;
+  const GetNotificationErrorState(this.message);
+}
+
+class GetNotificationEmptyState extends HomeState {
+  final String message;
+  const GetNotificationEmptyState(this.message);
+}
+
+class UpdateReadNotificationLoadingState extends HomeState {
+  UpdateReadNotificationLoadingState();
+}
+
+class UpdateReadNotificationLoadedState extends HomeState {
+  const UpdateReadNotificationLoadedState();
+}
+
+class UpdateReadNotificationFailedState extends HomeState {
+  final String message;
+  const UpdateReadNotificationFailedState(this.message);
+}
+
+class UpdateReadNotificationErrorState extends HomeState {
+  final String message;
+  const UpdateReadNotificationErrorState(this.message);
 }

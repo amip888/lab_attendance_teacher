@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:lab_attendance_mobile_teacher/modules/users/model/list_user_model/list_user_model.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 
@@ -28,7 +29,11 @@ class ListUserBloc extends Bloc<ListUserEvent, ListUserState> {
         emit(GetListUserEmptyState(data.statusMessage!));
       }
     } catch (error) {
-      emit(GetListUserErrorState(error.toString()));
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(GetListUserErrorState(error.toString()));
+      }
     }
   }
 }

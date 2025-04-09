@@ -1,7 +1,9 @@
-import 'package:lab_attendance_mobile_teacher/modules/attendance/model/all_attendances_model/all_attendances_model.dart';
-import 'package:lab_attendance_mobile_teacher/modules/attendance/model/scedule_model/schedule_model.dart';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
+import 'package:lab_attendance_mobile_teacher/modules/attendance/model/attendance_student_model/attendance_student_model.dart';
+import 'package:lab_attendance_mobile_teacher/modules/attendance/model/attendance_teacher_model/attendance_teacher_model.dart';
+import 'package:lab_attendance_mobile_teacher/modules/schedule/model/get_one_schedule_model/get_one_schedule_model.dart';
+import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule_model.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 
@@ -14,25 +16,34 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   AttendanceBloc({BatchApi? api})
       : _api = api ?? BatchApi(),
         super(AttendanceInitial()) {
-    on<GetScheduleEvent>(_onGetSchedule);
+    on<GetScheduleByDateEvent>(_onGetScheduleByDate);
     on<GetAllAttendancesEvent>(_onGetAllAttendances);
+    on<GetOneAttendanceStudentEvent>(_onGetOneAttendanceStudent);
     on<PostAttendanceEvent>(_onPostAttendance);
+    on<UpdateAttendanceStudentEvent>(_onUpdateAttendanceStudent);
   }
 
-  void _onGetSchedule(
-      GetScheduleEvent event, Emitter<AttendanceState> emit) async {
+  void _onGetScheduleByDate(
+      GetScheduleByDateEvent event, Emitter<AttendanceState> emit) async {
     emit(GetScheduleLoadingState());
     try {
-      final data = await _api.getSchedule(date: event.date);
+      final data = await _api.getScheduleByDate(params: event.params);
       ResponseData responseData = ResponseData.fromJson(data.data);
-      ScheduleModel scheduleModel = ScheduleModel.fromJson(responseData.data);
-      if (data.statusCode == 200) {
-        emit(GetScheduleLoadedState(scheduleModel));
+      GetOneScheduleModel getOneScheduleModel =
+          GetOneScheduleModel.fromJson(responseData.data);
+      if (getOneScheduleModel.schedule != null) {
+        emit(GetOneScheduleLoadedState(getOneScheduleModel));
       } else {
         emit(GetScheduleEmptyState(data.statusMessage!));
       }
-    } on DioException catch (error) {
-      emit(GetScheduleErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else if (ApiService.errorCode == '404') {
+        emit(const GetScheduleEmptyState('Jadwal Praktikum Kosong'));
+      } else {
+        emit(GetScheduleErrorState(error.toString()));
+      }
     }
   }
 
@@ -40,17 +51,55 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       GetAllAttendancesEvent event, Emitter<AttendanceState> emit) async {
     emit(GetAllAttendancesLoadingState());
     try {
-      final data = await _api.getAllAttendance();
-      ResponseData responseData = ResponseData.fromJson(data.data);
-      AllAttendancesModel allAttendancesModel =
-          AllAttendancesModel.fromJson(responseData.data);
-      if (data.statusCode == 200) {
-        emit(GetAllAttendancesLoadedState(allAttendancesModel));
+      final dataAttendanceTeacher = await _api.getAttendanceTeacher();
+      ResponseData responseDataTeacher =
+          ResponseData.fromJson(dataAttendanceTeacher.data);
+      AttendanceTeacherModel attendanceTeacherModel =
+          AttendanceTeacherModel.fromJson(responseDataTeacher.data);
+      final dataAttendanceStudent = await _api.getAttendanceStudent();
+      ResponseData responseDataStudent =
+          ResponseData.fromJson(dataAttendanceStudent.data);
+      AttendanceStudentModel attendanceStudentModel =
+          AttendanceStudentModel.fromJson(responseDataStudent.data);
+
+      if (dataAttendanceTeacher.statusCode == 200 ||
+          dataAttendanceStudent.statusCode == 200) {
+        emit(GetAllAttendancesLoadedState(
+            attendanceTeacherModel, attendanceStudentModel));
       } else {
-        emit(GetAllAttendancesEmptyState(data.statusMessage!));
+        emit(GetAllAttendancesEmptyState(dataAttendanceTeacher.statusMessage!));
       }
-    } on DioException catch (error) {
-      emit(GetAllAttendancesErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(GetAllAttendancesErrorState(error.toString()));
+      }
+    }
+  }
+
+  void _onGetOneAttendanceStudent(
+      GetOneAttendanceStudentEvent event, Emitter<AttendanceState> emit) async {
+    emit(GetOneAttendanceStudentLoadingState());
+    try {
+      final dataAttendanceStudent = await _api.getAttendanceStudent();
+      ResponseData responseDataStudent =
+          ResponseData.fromJson(dataAttendanceStudent.data);
+      AttendanceStudentModel attendanceStudentModel =
+          AttendanceStudentModel.fromJson(responseDataStudent.data);
+
+      if (dataAttendanceStudent.statusCode == 200) {
+        emit(GetOneAttendanceStudentLoadedState(attendanceStudentModel));
+      } else {
+        emit(GetOneAttendanceStudentEmptyState(
+            dataAttendanceStudent.statusMessage!));
+      }
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(GetOneAttendanceStudentErrorState(error.toString()));
+      }
     }
   }
 
@@ -59,13 +108,37 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     emit(PostAttendanceLoadingState());
     try {
       final data = await _api.postAttendance(body: event.params);
-      if (data.statusCode == 200) {
+      if (data.statusCode == 201) {
         emit(const PostAttendanceLoadedState());
       } else {
         emit(PostAttendanceFailedState(data.statusMessage!));
       }
-    } on DioException catch (error) {
-      emit(PostAttendanceErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(PostAttendanceErrorState(error.toString()));
+      }
+    }
+  }
+
+  void _onUpdateAttendanceStudent(
+      UpdateAttendanceStudentEvent event, Emitter<AttendanceState> emit) async {
+    emit(UpdateAttendanceStudentLoadingState());
+    try {
+      final data = await _api.updateAttendanceStudent(
+          body: event.body, id: event.attendanceId);
+      if (data.statusCode == 200) {
+        emit(const UpdateAttendanceStudentLoadedState());
+      } else {
+        emit(UpdateAttendanceStudentFailedState(data.statusMessage!));
+      }
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(UpdateAttendanceStudentErrorState(error.toString()));
+      }
     }
   }
 }

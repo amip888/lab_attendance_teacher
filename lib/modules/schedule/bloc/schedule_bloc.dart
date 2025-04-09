@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:lab_attendance_mobile_teacher/modules/schedule/model/schedule_model/schedule_model.dart';
-// import 'package:lab_attendance_mobile_teacher/modules/schedule/model/teachers_model/teachers_model.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 
@@ -16,8 +14,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       : _api = api ?? BatchApi(),
         super(ScheduleInitial()) {
     on<GetScheduleEvent>(_onGetSchedule);
-    on<AddScheduleEvent>(_onAddSchedule);
-    // on<GetTeachersEvent>(_onGetTeachers);
   }
 
   void _onGetSchedule(
@@ -33,41 +29,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         emit(GetScheduleEmptyState(data.statusMessage!));
       }
     } catch (error) {
-      emit(GetScheduleErrorState(error.toString()));
-    }
-  }
-
-  void _onAddSchedule(
-      AddScheduleEvent event, Emitter<ScheduleState> emit) async {
-    emit(AddScheduleLoadingState());
-    try {
-      final data = await _api.addSchedule(body: event.params);
-      log(data.statusCode.toString());
-      if (data.statusCode == 200 || data.statusCode == 201) {
-        emit(const AddScheduleLoadedState());
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
       } else {
-        emit(AddScheduleFailedState(data.statusMessage!));
+        emit(GetScheduleErrorState(error.toString()));
       }
-    } on DioException catch (error) {
-      emit(AddScheduleErrorState(error.message!));
     }
   }
-
-  // void _onGetTeachers(
-  //     GetTeachersEvent event, Emitter<ScheduleState> emit) async {
-  //   emit(GetTeachersLoadingState());
-  //   try {
-  //     final data = await _api.getSchedules();
-  //     // final data = await _api.getTeachers();
-  //     ResponseData responseData = ResponseData.fromJson(data.data);
-  //     // TeachersModel teachersModel = TeachersModel.fromJson(responseData.data);
-  //     if (teachersModel.teacher!.isNotEmpty) {
-  //       emit(GetTeachersLoadedState(teachersModel));
-  //     } else {
-  //       emit(GetTeachersEmptyState(data.statusMessage!));
-  //     }
-  //   } on DioException catch (error) {
-  //     emit(GetTeachersErrorState(error.message!));
-  //   }
-  // }
 }

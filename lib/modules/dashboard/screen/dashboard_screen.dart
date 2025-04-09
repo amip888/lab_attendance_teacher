@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:lab_attendance_mobile_teacher/component/firebase.config.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
 import 'package:lab_attendance_mobile_teacher/modules/attendance/screen/attendance_screen.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/screen/home_screen.dart';
@@ -5,8 +7,9 @@ import 'package:lab_attendance_mobile_teacher/modules/account/screen/profile_scr
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:lab_attendance_mobile_teacher/modules/lab_room/screen/lab_rooms_screen.dart';
-import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/scedule_screen.dart';
+import 'package:lab_attendance_mobile_teacher/services/local_storage_services.dart';
+import 'package:lab_attendance_mobile_teacher/services/session/session_manager.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,12 +28,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<BottomNavigationBarItem> navItems = [];
   final List<Widget> screen = [
     const HomeScreen(),
-    const LabRoomsScreen(),
     const AttendanceScreen(),
-    const SchedulesScreen(),
     const ProfileScreen(),
   ];
   PageController? pageController;
+  Timer? timer;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -41,8 +43,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void initState() {
+    FirebaseConfig.initConfigure();
     pageController = PageController(initialPage: currentTab);
+    getToken();
     super.initState();
+  }
+
+  getToken() async {
+    String token = await LocalStorageServices.getAccessToken();
+    final sessionManager = Provider.of<SessionManager>(context, listen: false);
+    sessionManager.login(token);
+    timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
+      sessionManager.checkTokenExpiry(
+          context, token); // Redirect jika token expired
+    });
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    // sessionTimeoutManager
+    //     .dispose(); // Pastikan untuk membatalkan timer saat widget dihapus
+    super.dispose();
   }
 
   @override
@@ -60,37 +82,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: SvgPicture.asset('assets/images/svgs/ic_home_active.svg'),
           ),
           label: 'Home'),
-      BottomNavigationBarItem(
-          icon: Padding(
-            padding: const EdgeInsets.only(bottom: 2.0),
-            child: SvgPicture.asset(
-              'assets/images/svgs/ic_grid_inactive.svg',
-            ),
-          ),
-          activeIcon: Padding(
-            padding: const EdgeInsets.only(bottom: 2.0),
-            child: SvgPicture.asset('assets/images/svgs/ic_grid_active.svg'),
-          ),
-          label: 'Ruangan'),
       const BottomNavigationBarItem(
           icon: SizedBox(
             height: 24,
             width: 24,
           ),
-          label: 'Attendance'),
-      BottomNavigationBarItem(
-        icon: Padding(
-          padding: const EdgeInsets.only(bottom: 2.0),
-          child: SvgPicture.asset(
-            'assets/images/svgs/ic_calendar_inactive.svg',
-          ),
-        ),
-        activeIcon: Padding(
-          padding: const EdgeInsets.only(bottom: 2.0),
-          child: SvgPicture.asset('assets/images/svgs/ic_calendar_active.svg'),
-        ),
-        label: 'Jadwal',
-      ),
+          label: 'Absensi'),
       BottomNavigationBarItem(
           icon: Padding(
             padding: const EdgeInsets.only(bottom: 2.0),
@@ -102,7 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.only(bottom: 2.0),
             child: SvgPicture.asset('assets/images/svgs/ic_profile_active.svg'),
           ),
-          label: 'Profile'),
+          label: 'Profil'),
     ];
     return Scaffold(
       body: WillPopScope(
@@ -120,9 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         onPressed: () {
-          // Navigator.push(context,
-          //     MaterialPageRoute(builder: (context) => const QRScreen()));
-          Navigator.pushNamed(context, AttendanceScreen.path);
+          Navigator.pushNamed(context, AttendanceScreen.path,
+              arguments: AttendanceArgument());
         },
         child: Stack(alignment: Alignment.center, children: [
           Container(

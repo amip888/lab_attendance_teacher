@@ -12,14 +12,14 @@ class Student {
   String? studentClass;
   String? major;
   String? phone;
-  bool? gender;
+  String? gender;
   @JsonKey(name: 'place_birth')
   String? placeBirth;
   @JsonKey(name: 'date_birth')
   String? dateBirth;
   String? address;
   @JsonKey(name: 'file_path')
-  String? filePath;
+  dynamic filePath;
   DateTime? createdAt;
   DateTime? updatedAt;
 
@@ -57,11 +57,11 @@ class Student {
     String? studentClass,
     String? major,
     String? phone,
-    bool? gender,
+    String? gender,
     String? placeBirth,
     String? dateBirth,
     String? address,
-    String? filePath,
+    dynamic filePath,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {

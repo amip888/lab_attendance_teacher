@@ -6,6 +6,7 @@ import 'package:lab_attendance_mobile_teacher/component/iconly.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/menu_icon.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 import 'package:lab_attendance_mobile_teacher/services/upload_file/files.dart';
@@ -212,7 +213,11 @@ class _ImageUploadState extends State<ImageUpload> {
       }
     } catch (error) {
       log(error.toString());
-      showToastError(error.toString());
+      if (ApiService.connectionInternet == 'Disconnect') {
+        showToastError('Tidak Ada Koneksi Internet');
+      } else {
+        showToastError(error.toString());
+      }
       setState(() {
         _isLoading = false;
       });

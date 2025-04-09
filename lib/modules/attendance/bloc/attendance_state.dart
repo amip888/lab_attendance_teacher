@@ -6,6 +6,10 @@ abstract class AttendanceState {
 
 class AttendanceInitial extends AttendanceState {}
 
+class NoInternetConnectionState extends AttendanceState {
+  NoInternetConnectionState();
+}
+
 class GetScheduleLoadingState extends AttendanceState {
   GetScheduleLoadingState();
 }
@@ -13,6 +17,11 @@ class GetScheduleLoadingState extends AttendanceState {
 class GetScheduleLoadedState extends AttendanceState {
   final ScheduleModel? data;
   const GetScheduleLoadedState(this.data);
+}
+
+class GetOneScheduleLoadedState extends AttendanceState {
+  final GetOneScheduleModel? data;
+  const GetOneScheduleLoadedState(this.data);
 }
 
 class GetScheduleErrorState extends AttendanceState {
@@ -30,8 +39,10 @@ class GetAllAttendancesLoadingState extends AttendanceState {
 }
 
 class GetAllAttendancesLoadedState extends AttendanceState {
-  final AllAttendancesModel? data;
-  const GetAllAttendancesLoadedState(this.data);
+  final AttendanceTeacherModel? dataAttendanceTeacher;
+  final AttendanceStudentModel? dataAttendanceStudent;
+  const GetAllAttendancesLoadedState(
+      this.dataAttendanceTeacher, this.dataAttendanceStudent);
 }
 
 class GetAllAttendancesErrorState extends AttendanceState {
@@ -42,6 +53,25 @@ class GetAllAttendancesErrorState extends AttendanceState {
 class GetAllAttendancesEmptyState extends AttendanceState {
   final String message;
   const GetAllAttendancesEmptyState(this.message);
+}
+
+class GetOneAttendanceStudentLoadingState extends AttendanceState {
+  GetOneAttendanceStudentLoadingState();
+}
+
+class GetOneAttendanceStudentLoadedState extends AttendanceState {
+  final AttendanceStudentModel? dataAttendanceStudent;
+  const GetOneAttendanceStudentLoadedState(this.dataAttendanceStudent);
+}
+
+class GetOneAttendanceStudentErrorState extends AttendanceState {
+  final String message;
+  const GetOneAttendanceStudentErrorState(this.message);
+}
+
+class GetOneAttendanceStudentEmptyState extends AttendanceState {
+  final String message;
+  const GetOneAttendanceStudentEmptyState(this.message);
 }
 
 class PostAttendanceLoadingState extends AttendanceState {
@@ -60,4 +90,22 @@ class PostAttendanceFailedState extends AttendanceState {
 class PostAttendanceErrorState extends AttendanceState {
   final String message;
   const PostAttendanceErrorState(this.message);
+}
+
+class UpdateAttendanceStudentLoadingState extends AttendanceState {
+  UpdateAttendanceStudentLoadingState();
+}
+
+class UpdateAttendanceStudentLoadedState extends AttendanceState {
+  const UpdateAttendanceStudentLoadedState();
+}
+
+class UpdateAttendanceStudentFailedState extends AttendanceState {
+  final String message;
+  const UpdateAttendanceStudentFailedState(this.message);
+}
+
+class UpdateAttendanceStudentErrorState extends AttendanceState {
+  final String message;
+  const UpdateAttendanceStudentErrorState(this.message);
 }

@@ -10,6 +10,8 @@ class CustomTextField extends StatefulWidget {
   final String label;
   final String? hintText;
   final Color? textColor;
+  final Color? borderColor;
+  final Color? hintTextColor;
   final bool isNumber;
   final bool isPassword;
   final bool readOnly;
@@ -38,6 +40,8 @@ class CustomTextField extends StatefulWidget {
     this.prefixPhone = false,
     this.limit,
     this.prefixIcon,
+    this.borderColor,
+    this.hintTextColor,
   });
 
   @override
@@ -62,15 +66,17 @@ class _CustomTextFieldState extends State<CustomTextField> {
           textInputAction: widget.textInputAction,
           decoration: InputDecoration(
               counterText: '',
-              border: const OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Pallete.borderTexField, width: 1.0),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: widget.borderColor ?? Pallete.borderTexField,
+                    width: 1.0),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
-              enabledBorder: const OutlineInputBorder(
-                borderSide:
-                    BorderSide(color: Pallete.borderTexField, width: 1.0),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: widget.borderColor ?? Pallete.borderTexField,
+                    width: 1.0),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
               hintText: widget.hintText,
               hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),

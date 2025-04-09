@@ -19,6 +19,15 @@ AttendanceStudent _$AttendanceStudentFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      student: json['student'] == null
+          ? null
+          : Student.fromJson(json['student'] as Map<String, dynamic>),
+      schedule: json['schedule'] == null
+          ? null
+          : Schedule.fromJson(json['schedule'] as Map<String, dynamic>),
+      labRoom: json['lab_room'] == null
+          ? null
+          : LabRoom.fromJson(json['lab_room'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AttendanceStudentToJson(AttendanceStudent instance) =>
@@ -30,4 +39,7 @@ Map<String, dynamic> _$AttendanceStudentToJson(AttendanceStudent instance) =>
       'status_attendance': instance.statusAttendance,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
+      'student': instance.student,
+      'schedule': instance.schedule,
+      'lab_room': instance.labRoom,
     };

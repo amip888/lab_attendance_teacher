@@ -4,20 +4,23 @@ import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
 
 class MenuIcon extends StatelessWidget {
-  String? iconUrl;
+  String? iconUrl, pngIcon;
   String? svgIcon;
   String title;
   bool isSvg;
+  bool isPng;
   double? iconSize;
   Function() onTap;
 
   MenuIcon(
       {super.key,
       this.iconUrl,
+      this.pngIcon,
       this.svgIcon,
       required this.title,
       required this.onTap,
       this.isSvg = false,
+      this.isPng = false,
       this.iconSize});
 
   @override
@@ -39,13 +42,22 @@ class MenuIcon extends StatelessWidget {
                     width: iconSize ?? 57,
                     height: iconSize ?? 57,
                   )
-                : NetworkImagePlaceHolder(
-                    height: iconSize ?? 57,
-                    width: iconSize ?? 57,
-                    isRounded: true,
-                    imageUrl: iconUrl,
-                  ),
-            divide4,
+                : isPng
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/images/pngs/$pngIcon',
+                          width: iconSize ?? 57,
+                          height: iconSize ?? 57,
+                        ),
+                      )
+                    : NetworkImagePlaceHolder(
+                        height: iconSize ?? 57,
+                        width: iconSize ?? 57,
+                        isRounded: true,
+                        imageUrl: iconUrl,
+                      ),
+            divide8,
             Text(title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(

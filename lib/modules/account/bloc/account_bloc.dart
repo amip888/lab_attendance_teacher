@@ -1,6 +1,6 @@
 import 'package:lab_attendance_mobile_teacher/modules/home/model/user_login_model/user_login_model.dart';
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 
@@ -14,6 +14,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       : _api = api ?? BatchApi(),
         super(AccountInitial()) {
     on<GetUserAccountEvent>(_onGetUserLogin);
+    on<PostPINEvent>(_onPostPIN);
     on<UpdateUserAccountEvent>(_onUpdateUserAccount);
   }
 
@@ -30,8 +31,38 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       } else {
         emit(GetUserAccountEmptyState(data.statusMessage!));
       }
-    } on DioException catch (error) {
-      emit(GetUserAccountErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(GetUserAccountErrorState(error.toString()));
+      }
+    }
+  }
+
+  void _onPostPIN(PostPINEvent event, Emitter<AccountState> emit) async {
+    emit(PostPINLoadingState());
+    try {
+      final data = await _api.postPIN(body: event.params);
+      if (data.statusCode == 200) {
+        emit(const PostPINLoadedState());
+      } else if (data.statusCode == 401 && ApiService.error == 'Wrong PIN') {
+        emit(const PostPINFailedState('PIN Salah'));
+      } else {
+        emit(PostPINFailedState(data.statusMessage!));
+      }
+    } catch (error) {
+      String message = '';
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else if (ApiService.errorCode == '401' &&
+          ApiService.error == 'Wrong PIN') {
+        message = 'PIN Salah';
+        emit(PostPINErrorState(message));
+      } else {
+        message = error.toString();
+        emit(PostPINErrorState(message));
+      }
     }
   }
 
@@ -46,8 +77,12 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       } else {
         emit(UpdateUserAccountFailedState(data.statusMessage!));
       }
-    } on DioException catch (error) {
-      emit(UpdateUserAccountErrorState(error.message!));
+    } catch (error) {
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
+      } else {
+        emit(UpdateUserAccountErrorState(error.toString()));
+      }
     }
   }
 }

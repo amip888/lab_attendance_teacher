@@ -6,6 +6,10 @@ abstract class LabRoomState {
 
 class LabRoomInitial extends LabRoomState {}
 
+class NoInternetConnectionState extends LabRoomState {
+  NoInternetConnectionState();
+}
+
 class GetLabRoomLoadingState extends LabRoomState {
   GetLabRoomLoadingState();
 }
@@ -23,22 +27,4 @@ class GetLabRoomErrorState extends LabRoomState {
 class GetLabRoomEmptyState extends LabRoomState {
   final String message;
   const GetLabRoomEmptyState(this.message);
-}
-
-class PostLabRoomLoadingState extends LabRoomState {
-  PostLabRoomLoadingState();
-}
-
-class PostLabRoomLoadedState extends LabRoomState {
-  const PostLabRoomLoadedState();
-}
-
-class PostLabRoomFailedState extends LabRoomState {
-  final String message;
-  const PostLabRoomFailedState(this.message);
-}
-
-class PostLabRoomErrorState extends LabRoomState {
-  final String message;
-  const PostLabRoomErrorState(this.message);
 }

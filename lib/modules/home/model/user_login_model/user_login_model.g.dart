@@ -8,16 +8,12 @@ part of 'user_login_model.dart';
 
 UserLoginModel _$UserLoginModelFromJson(Map<String, dynamic> json) =>
     UserLoginModel(
-      email: json['email'] as String?,
-      role: json['role'] as String?,
-      teacher: json['teacher'] == null
+      user: json['user'] == null
           ? null
-          : Teacher.fromJson(json['teacher'] as Map<String, dynamic>),
+          : User.fromJson(json['user'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$UserLoginModelToJson(UserLoginModel instance) =>
     <String, dynamic>{
-      'email': instance.email,
-      'role': instance.role,
-      'teacher': instance.teacher,
+      'user': instance.user,
     };

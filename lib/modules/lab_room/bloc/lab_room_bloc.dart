@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:dio/dio.dart';
 import 'package:lab_attendance_mobile_teacher/modules/lab_room/model/lab_room_model/lab_room_model.dart';
+import 'package:lab_attendance_mobile_teacher/services/api/api_service.dart';
 import 'package:lab_attendance_mobile_teacher/services/api/batch_api.dart';
 import 'package:lab_attendance_mobile_teacher/services/response_data/response_data.dart';
 
@@ -14,7 +14,6 @@ class LabRoomBloc extends Bloc<LabRoomEvent, LabRoomState> {
       : _api = api ?? BatchApi(),
         super(LabRoomInitial()) {
     on<GetLabRoomEvent>(_onGetLabRoom);
-    on<PostLabRoomEvent>(_onPostLabRoom);
   }
 
   void _onGetLabRoom(GetLabRoomEvent event, Emitter<LabRoomState> emit) async {
@@ -29,22 +28,11 @@ class LabRoomBloc extends Bloc<LabRoomEvent, LabRoomState> {
         emit(GetLabRoomEmptyState(data.statusMessage!));
       }
     } catch (error) {
-      emit(GetLabRoomErrorState(error.toString()));
-    }
-  }
-
-  void _onPostLabRoom(
-      PostLabRoomEvent event, Emitter<LabRoomState> emit) async {
-    emit(PostLabRoomLoadingState());
-    try {
-      final data = await _api.postLabRoom(body: event.params);
-      if (data.statusCode == 200) {
-        emit(const PostLabRoomLoadedState());
+      if (ApiService.connectionInternet == 'Disconnect') {
+        emit(NoInternetConnectionState());
       } else {
-        emit(PostLabRoomFailedState(data.statusMessage!));
+        emit(GetLabRoomErrorState(error.toString()));
       }
-    } on DioException catch (error) {
-      emit(PostLabRoomErrorState(error.message!));
     }
   }
 }

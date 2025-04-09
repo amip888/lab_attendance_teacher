@@ -4,9 +4,12 @@ import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/custom_text_field.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/image_upload.dart';
 import 'package:lab_attendance_mobile_teacher/component/iconly.dart';
+import 'package:lab_attendance_mobile_teacher/component/illustration/illustration_widget.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/component/rsa_algorithm.dart';
 import 'package:lab_attendance_mobile_teacher/component/svg_image.dart';
 import 'package:lab_attendance_mobile_teacher/modules/account/bloc/account_bloc.dart';
+import 'package:lab_attendance_mobile_teacher/modules/account/screen/account_user_decrypted.dart';
 import 'package:lab_attendance_mobile_teacher/modules/home/model/user_login_model/user_login_model.dart';
 import 'package:lab_attendance_mobile_teacher/services/upload_file/files.dart';
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
@@ -16,7 +19,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 class EditProfileArgument {
-  UserLoginModel? userLogin;
+  UserAccountEncryptDecrypt? userLogin;
+  // UserLoginModel? userLogin;
   EditProfileArgument({this.userLogin});
 }
 
@@ -37,6 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController placeBirthController = TextEditingController();
   TextEditingController dateBirthController = TextEditingController();
+  TextEditingController formatDateBirthController = TextEditingController();
   TextEditingController adresssController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -56,11 +61,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String gender = 'Laki-laki';
 
   bool isLoading = false;
-  String? url;
+  String? urlFileProfile;
   AccountBloc? accountBloc;
+  RsaAlgorithm rsaAlgorithm = RsaAlgorithm();
 
   @override
   void initState() {
+    rsaAlgorithm.initializeRSA();
     accountBloc = AccountBloc();
     if (widget.argument!.userLogin != null) {
       setInitial(widget.argument!.userLogin!);
@@ -68,24 +75,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
   }
 
-  setInitial(UserLoginModel user) {
-    DateTime date = DateTime.parse(user.teacher!.dateBirth!);
-    String birthDate = DateFormat('dd-MM-yyyy').format(date);
-    nameController.text = user.teacher!.name!;
-    placeBirthController.text = user.teacher!.placeBirth!;
+  setInitial(UserAccountEncryptDecrypt user) {
+    // setInitial(UserLoginModel user) {
+    String birthDate, day;
+    if (user.dateBirth != 'Belum Diatur') {
+      DateTime date = DateTime.parse(user.dateBirth!);
+      day = formatDay(date);
+      birthDate = '$day, ${DateFormat('dd-MM-yyyy').format(date)}';
+    } else {
+      birthDate = '';
+    }
+    nameController.text = user.name!;
+    placeBirthController.text =
+        user.placeBirth != 'Belum Diatur' ? user.placeBirth! : '';
     dateBirthController.text = birthDate;
-    adresssController.text = user.teacher!.address!;
-    phoneController.text = user.teacher!.phone!.substring(3);
-    emailController.text = user.email!;
-    selectedMajor = user.teacher!.major!;
-    addressController.text = user.teacher!.address!;
-    url = user.teacher!.filePath;
-    gender = user.teacher!.gender == true ? 'Laki-laki' : 'Perempuan';
+    formatDateBirthController.text =
+        user.dateBirth != 'Belum Diatur' ? user.dateBirth! : '';
+    phoneController.text =
+        user.phone != 'Belum Diatur' ? user.phone!.substring(3) : '';
+    addressController.text =
+        user.address != 'Belum Diatur' ? user.address! : '';
+    urlFileProfile = user.filePath;
+    gender = user.gender != 'Belum Diatur' ? user.gender! : 'Laki-laki';
   }
 
   @override
   Widget build(BuildContext context) {
-    log('url: $url');
+    log('urlFileProfile: $urlFileProfile');
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
@@ -101,7 +117,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           create: (context) => accountBloc!,
           child: BlocConsumer<AccountBloc, AccountState>(
             builder: (BuildContext context, state) {
-              return buildView();
+              if (state is NoInternetConnectionState) {
+                isLoading = false;
+                return IllustrationWidget(
+                  type: IllustrationWidgetType.notConnection,
+                  onButtonTap: () {
+                    updateUser();
+                  },
+                );
+              } else {
+                return buildView();
+              }
             },
             listener: (BuildContext context, Object? state) {
               if (state is UpdateUserAccountLoadingState) {
@@ -148,10 +174,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             borderRadius: BorderRadius.circular(100)),
                         child: ImageUpload(
                           file: photoProfile,
-                          label: 'Foto Profil Resto',
+                          label: 'Foto Profil',
                           isCircle: true,
                           isEdit: true,
-                          url: url,
+                          url: urlFileProfile,
                           imageOnlyMode: true,
                           labelsize: 12,
                           aspectRatio: 1 / 1,
@@ -185,6 +211,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   textInputAction: TextInputAction.next,
                   label: 'Nama',
                 ),
+                CustomTextField(
+                  label: 'Tempat Lahir',
+                  validator: validateLetterOnly,
+                  controller: placeBirthController,
+                  hintText: 'Tempat Lahir',
+                  textInputAction: TextInputAction.next,
+                ),
+                CustomTextField(
+                  label: 'Tanggal Lahir ',
+                  validator: requiredValidator,
+                  controller: dateBirthController,
+                  hintText: 'Tanggal Lahir ',
+                  readOnly: true,
+                  suffixIcon: const Icon(Iconly.calendar),
+                  onTap: () => changeDate(context,
+                      controller: dateBirthController,
+                      formatDateController: formatDateBirthController),
+                ),
+                const Text('Jenis Kelamin'),
+                Row(
+                  children: [
+                    radioGender('Laki-laki'),
+                    divideW16,
+                    radioGender('Perempuan'),
+                  ],
+                ),
+                divide8,
                 const Text(
                   'Jurusan',
                   style: TextStyle(fontSize: 12),
@@ -215,31 +268,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                 ),
                 divide16,
-                // if (selectedMajor.isNotEmpty)
-                //   CustomTextField(
-                //     label: 'Kelas',
-                //     controller: classController,
-                //     hintText: 'Kelas',
-                //     textInputAction: TextInputAction.next,
-                //     validator: (value) {
-                //       if (value == null || value.isEmpty) {
-                //         return 'Tidak boleh kosong';
-                //       } else if (!classController.text
-                //           .contains(selectedMajor)) {
-                //         return 'Kelas tidak sesuai';
-                //       }
-                //       return null;
-                //     },
-                //   ),
-                const Text('Jenis Kelamin'),
-                Row(
-                  children: [
-                    radioGender('Laki-laki'),
-                    divideW16,
-                    radioGender('Perempuan'),
-                  ],
-                ),
-                divide8,
                 CustomTextField(
                   label: 'No Handphone',
                   prefixPhone: true,
@@ -249,30 +277,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   isNumber: true,
                   textInputAction: TextInputAction.next,
                   limit: 12,
-                ),
-                // CustomTextField(
-                //   label: 'Email',
-                //   validator: requiredEmail,
-                //   controller: emailController,
-                //   hintText: 'Email',
-                //   textInputAction: TextInputAction.next,
-                // ),
-                CustomTextField(
-                  label: 'Tempat Lahir',
-                  validator: validateLetterOnly,
-                  controller: placeBirthController,
-                  hintText: 'Tempat Lahir',
-                  textInputAction: TextInputAction.next,
-                ),
-                CustomTextField(
-                  label: 'Tanggal Lahir ',
-                  validator: requiredValidator,
-                  controller: dateBirthController,
-                  hintText: 'Tanggal Lahir ',
-                  readOnly: true,
-                  suffixIcon: const Icon(Iconly.calendar),
-                  onTap: () => changeDate(context,
-                      controller: dateBirthController, isReverse: true),
                 ),
                 CustomTextField(
                   label: 'Alamat',
@@ -325,23 +329,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   updateUser() {
     Map<String, dynamic> body = {};
-    body['name'] = nameController.text;
-    body['major'] = selectedMajor;
-    if (gender == 'Laki-laki') {
-      body['gender'] = true;
-    } else {
-      body['gender'] = false;
-    }
-    body['phone'] = '+62${phoneController.text}';
-    // body['email'] = emailController.text;
-    body['place_birth'] = placeBirthController.text;
-    body['date_birth'] = dateBirthController.text;
-    body['address'] = addressController.text;
-    body['filePath'] = photoProfile == null ? url : photoProfile?.url;
+    body['name'] = rsaAlgorithm.onEncrypt(nameController.text);
+    body['major'] = rsaAlgorithm.onEncrypt(selectedMajor);
+    body['gender'] = rsaAlgorithm.onEncrypt(gender);
+    // if (gender == 'Laki-laki') {
+    //   body['gender'] = true;
+    // } else {
+    //   body['gender'] = false;
+    // }
+    body['phone'] = rsaAlgorithm.onEncrypt('+62${phoneController.text}');
+    body['place_birth'] = rsaAlgorithm.onEncrypt(placeBirthController.text);
+    body['date_birth'] = formatDateBirthController.text;
+    body['address'] = rsaAlgorithm.onEncrypt(addressController.text);
+    body['file_path'] = photoProfile != null
+        ? rsaAlgorithm.onEncrypt(photoProfile!.filename!)
+        : rsaAlgorithm.onEncrypt('no file');
+    // body['file_path'] =
+    //     photoProfile != null ? photoProfile?.filename : photoProfile?.url;
 
     log(body.toString());
     accountBloc!.add(UpdateUserAccountEvent(
-        params: body, idStudent: widget.argument!.userLogin!.teacher!.id));
+        params: body, idStudent: widget.argument!.userLogin!.id));
   }
 }
 

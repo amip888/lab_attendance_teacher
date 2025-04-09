@@ -6,6 +6,10 @@ abstract class ListUserState {
 
 class ListUserInitial extends ListUserState {}
 
+class NoInternetConnectionState extends ListUserState {
+  NoInternetConnectionState();
+}
+
 class GetListUserLoadingState extends ListUserState {
   GetListUserLoadingState();
 }

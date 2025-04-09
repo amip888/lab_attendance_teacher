@@ -39,6 +39,10 @@ class NetworkImagePlaceHolder extends StatelessWidget {
                   ? const BorderRadius.all(Radius.circular(300))
                   : BorderRadius.zero)),
       child: CachedNetworkImage(
+        // imageUrl:
+        //     'http://192.168.43.18:3000/file/get-image/2024-09-06T15-42-40-247Z-image_cropper_1725637342685.jpg',
+        // imageUrl:
+        //     '${Environment.endpointFile}2024-09-06T15-42-40-247Z-image_cropper_1725637342685.jpg',
         imageUrl: '${Environment.endpointFile}$imageUrl',
         fit: fit ?? BoxFit.cover,
         width: width,

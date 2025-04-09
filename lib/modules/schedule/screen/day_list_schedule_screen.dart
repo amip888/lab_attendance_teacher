@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
-import 'package:lab_attendance_mobile_teacher/modules/schedule/screen/add_scedule_screen.dart';
 
 class DayListScheduleScreen extends StatefulWidget {
   const DayListScheduleScreen({super.key});
@@ -64,61 +63,59 @@ class _DayListScheduleScreenState extends State<DayListScheduleScreen> {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: listDaysName.length,
-        itemBuilder: (BuildContext context, int index) {
-          var item = listDaysName[index];
-          return itemSchedule(context, item);
-        },
+      body: Column(
+        children: [
+          ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: listDaysName.length,
+            itemBuilder: (BuildContext context, int index) {
+              var item = listDaysName[index];
+              return itemSchedule(context, item);
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget itemSchedule(BuildContext context, ComponentDayList item) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, AddScheduleScreen.path,
-            arguments: AddScheduleArgument(dayKey: item.key!));
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Pallete.primary2,
-            border: Border.all(color: Pallete.border, width: 2)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.dayName!,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  divide4,
-                  Text(
-                    'Jumlah jadwal: ${item.totalSchedule}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.red,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Pallete.primary2,
+          border: Border.all(color: Pallete.border, width: 2)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.dayName!,
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: Text(
-                  item.status!,
-                  style: TextStyle(fontSize: 12),
-                )),
-          ],
-        ),
+                divide4,
+                Text(
+                  'Jumlah jadwal: ${item.totalSchedule}',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Container(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.red,
+              ),
+              child: Text(
+                item.status!,
+                style: TextStyle(fontSize: 12),
+              )),
+        ],
       ),
     );
   }

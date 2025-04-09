@@ -24,7 +24,8 @@ class UserDetailScreen extends StatefulWidget {
 class _UserDetailScreenState extends State<UserDetailScreen> {
   UserDetail? userDetail;
   String gender = '';
-  String dateBirth = '';
+  String? placeDateBirth;
+  DateTime? dateBirthFormat;
 
   @override
   void initState() {
@@ -34,8 +35,15 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     } else {
       gender = 'Perempuan';
     }
-    DateTime dateBirthFormat = DateTime.parse(userDetail!.dateBirth!);
-    dateBirth = DateFormat('dd-MM-yy').format(dateBirthFormat);
+    if (userDetail!.dateBirth != null) {
+      if (userDetail!.dateBirth != 'Belum Diatur') {
+        dateBirthFormat = DateTime.parse(userDetail!.dateBirth!);
+        placeDateBirth =
+            '${userDetail!.placeBirth}, ${DateFormat('dd-MM-yy').format(dateBirthFormat!)}';
+      } else {
+        placeDateBirth = 'Belum Diatur';
+      }
+    }
     super.initState();
   }
 
@@ -52,19 +60,25 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         automaticallyImplyLeading: false,
       ),
       body: Padding(
-        padding:
-            const EdgeInsets.only(top: 40, right: 16, left: 16, bottom: 16),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: NetworkImagePlaceHolder(
-                    imageUrl: userDetail!.filePath,
-                    width: 150,
-                    height: 150,
-                  )),
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Pallete.border, width: 2.5),
+                  borderRadius: BorderRadius.circular(1000),
+                ),
+                child: NetworkImagePlaceHolder(
+                  imageUrl: userDetail!.filePath,
+                  width: 150,
+                  height: 150,
+                  isCircle: true,
+                ),
+              ),
             ),
             divide32,
             const Text('Data Pengguna'),
@@ -85,8 +99,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                           const Text('NIP'),
                           divide10,
                           const Text('Nama'),
-                          divide10,
-                          const Text('Jurusan'),
+                          if (userDetail!.role == 'teacher') divide10,
+                          if (userDetail!.role == 'teacher')
+                            const Text('Jurusan'),
                           divide10,
                           const Text('Nomor Handphone'),
                           divide10,
@@ -103,16 +118,19 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                           Text(userDetail!.idUser!),
                           divide10,
                           Text(userDetail!.name!),
+                          if (userDetail!.role == 'teacher') divide10,
+                          if (userDetail!.role == 'teacher')
+                            Text(userDetail!.major!),
                           divide10,
-                          Text(userDetail!.major!),
+                          Text(userDetail!.phone ?? 'Belum Diatur'),
                           divide10,
-                          Text(userDetail!.phone!),
+                          Text(userDetail!.gender ?? 'Belum Diatur'),
                           divide10,
-                          Text(gender),
+                          Text(placeDateBirth ?? 'Belum Diatur'),
+                          // Text('${userDetail!.placeBirth}, $dateBirth' ??
+                          //     'Belum Diatur'),
                           divide10,
-                          Text('${userDetail!.placeBirth!}, $dateBirth'),
-                          divide10,
-                          Text(userDetail!.address!),
+                          Text(userDetail!.address ?? 'Belum Diatur'),
                         ],
                       ),
                     ],

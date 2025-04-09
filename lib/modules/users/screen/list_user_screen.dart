@@ -6,11 +6,11 @@ import 'package:lab_attendance_mobile_teacher/component/constant_divider.dart';
 import 'package:lab_attendance_mobile_teacher/component/file_image/network_image_placeholder.dart';
 import 'package:lab_attendance_mobile_teacher/component/illustration/illustration_widget.dart';
 import 'package:lab_attendance_mobile_teacher/component/pallete.dart';
+import 'package:lab_attendance_mobile_teacher/component/rsa_algorithm.dart';
 import 'package:lab_attendance_mobile_teacher/component/shimmer.dart';
 import 'package:lab_attendance_mobile_teacher/modules/users/bloc/list_user_bloc.dart';
-import 'package:lab_attendance_mobile_teacher/modules/users/model/list_user_model/list_user_model.dart';
-import 'package:lab_attendance_mobile_teacher/modules/users/model/list_user_model/user.dart';
 import 'package:lab_attendance_mobile_teacher/modules/users/screen/user_detail_screen.dart';
+import 'package:lab_attendance_mobile_teacher/services/local_storage_services.dart';
 import 'package:lab_attendance_mobile_teacher/utils/view_utils.dart';
 
 class ListUserScreen extends StatefulWidget {
@@ -29,30 +29,34 @@ class _ListUserScreenState extends State<ListUserScreen> {
     ComponentFilter(
         id: '1', title: 'Semua', color: Pallete.primary, isSelected: true),
     ComponentFilter(
+        id: '4', title: 'Operator', color: Pallete.primary, isSelected: false),
+    ComponentFilter(
         id: '2', title: 'Guru', color: Pallete.primary, isSelected: false),
     ComponentFilter(
         id: '3', title: 'Siswa', color: Pallete.primary, isSelected: false),
-    ComponentFilter(
-        id: '4', title: 'Operator', color: Pallete.primary, isSelected: false)
   ];
   List<ComponentFilter> filters = [];
-  List<User> listUsers = [];
-  // List<User> listUsersFiltered = [];
   List<UserDetail> listUsersFiltered = [];
   List<UserDetail> listUserDetail = [];
   String userFilter = '';
-  // List<Attendance> listAttendance = [];
-  // List<Attendance> listFilterAttendance = [];
   bool isLoading = false;
+  bool isError = false;
+  bool isDecrypt = false;
+  RsaAlgorithm rsaAlgorithm = RsaAlgorithm();
 
   @override
   void initState() {
+    rsaAlgorithm.initializeRSA();
+    loadData();
     filters = listFilters;
-    listUserDetail = listUsersFiltered;
-    // listUsers = listUsersFiltered;
+    // listUserDetail = listUsersFiltered;
     listUserBloc = ListUserBloc();
     listUserBloc!.add(GetListUserEvent());
     super.initState();
+  }
+
+  loadData() async {
+    isDecrypt = await LocalStorageServices.getIsDecrypt();
   }
 
   @override
@@ -64,16 +68,18 @@ class _ListUserScreenState extends State<ListUserScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
           centerTitle: true,
           automaticallyImplyLeading: false,
-          bottom: PreferredSize(
-              preferredSize: const Size(double.infinity, 45),
-              child: isLoading ? shimmerFilter() : buildFilter()),
+          bottom: !isError
+              ? PreferredSize(
+                  preferredSize: const Size(double.infinity, 45),
+                  child: isLoading ? shimmerFilter() : buildFilter())
+              : null,
         ),
         body: BlocProvider(
           create: (context) => listUserBloc!,
           child: BlocConsumer<ListUserBloc, ListUserState>(
             builder: (BuildContext context, state) {
               if (state is GetListUserLoadingState) {
-                return loading();
+                return shimmerListUser();
               } else if (state is GetListUserLoadedState) {
                 return buildView();
               } else if (state is GetListUserEmptyState) {
@@ -90,12 +96,42 @@ class _ListUserScreenState extends State<ListUserScreen> {
                     listUserBloc!.add(GetListUserEvent());
                   },
                 );
+              } else if (state is NoInternetConnectionState) {
+                return IllustrationWidget(
+                  type: IllustrationWidgetType.notConnection,
+                  onButtonTap: () {
+                    listUserBloc!.add(GetListUserEvent());
+                  },
+                );
               }
               return Container();
             },
             listener: (BuildContext context, Object? state) {
-              if (state is GetListUserLoadedState) {
-                // listUsers.addAll(state.data.users!);
+              if (state is GetListUserLoadingState) {
+                setState(() {
+                  isLoading = true;
+                });
+              } else if (state is GetListUserLoadedState) {
+                setState(() {
+                  isLoading = false;
+                });
+                listUserDetail.clear();
+                for (var item in state.data.users!
+                    .where((element) => element.operator != null)) {
+                  listUserDetail.add(UserDetail(
+                    idUser: item.id,
+                    email: item.email,
+                    role: item.role,
+                    id: item.operator!.id,
+                    name: item.operator!.name,
+                    gender: item.operator!.gender,
+                    phone: item.operator!.phone,
+                    placeBirth: item.operator!.placeBirth,
+                    dateBirth: item.operator!.dateBirth,
+                    filePath: item.operator!.filePath,
+                    address: item.operator!.address,
+                  ));
+                }
                 for (var item in state.data.users!
                     .where((element) => element.teacher != null)) {
                   listUserDetail.add(UserDetail(
@@ -131,6 +167,49 @@ class _ListUserScreenState extends State<ListUserScreen> {
                     address: item.student!.address,
                   ));
                 }
+
+                if (isDecrypt) {
+                  for (var item in listUserDetail) {
+                    listUsersFiltered.add(UserDetail(
+                      idUser: rsaAlgorithm.onDecrypt(item.idUser!),
+                      email: rsaAlgorithm.onDecrypt(item.email!),
+                      role: item.role!,
+                      id: item.id!,
+                      name: rsaAlgorithm.onDecrypt(item.name!),
+                      phone: item.phone != null
+                          ? rsaAlgorithm.onDecrypt(item.phone!)
+                          : 'Belum Diatur',
+                      placeBirth: item.placeBirth != null
+                          ? rsaAlgorithm.onDecrypt(item.placeBirth!)
+                          : 'Belum Diatur',
+                      dateBirth: item.dateBirth != null
+                          ? item.dateBirth!
+                          // ? rsaAlgorithm.onDecrypt(item.dateBirth!)
+                          : 'Belum Diatur',
+                      address: item.address != null
+                          ? rsaAlgorithm.onDecrypt(item.address!)
+                          : 'Belum Diatur',
+                      filePath: item.filePath != null
+                          ? rsaAlgorithm.onDecrypt(item.filePath!)
+                          : '',
+                      gender: item.gender != null
+                          ? rsaAlgorithm.onDecrypt(item.gender!)
+                          : 'Belum Diatur',
+                      major: item.major != null
+                          ? rsaAlgorithm.onDecrypt(item.major!)
+                          : '',
+                    ));
+                  }
+                } else {
+                  listUsersFiltered = listUserDetail;
+                }
+              } else if (state is GetListUserEmptyState ||
+                  state is GetListUserErrorState ||
+                  state is NoInternetConnectionState) {
+                setState(() {
+                  isLoading = false;
+                  isError = true;
+                });
               }
             },
           ),
@@ -139,13 +218,21 @@ class _ListUserScreenState extends State<ListUserScreen> {
 
   buildView() {
     if (listUsersFiltered.isNotEmpty) {
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: listUsersFiltered.length,
-        itemBuilder: (context, index) {
-          var item = listUsersFiltered[index];
-          return cardUser(context, item);
+      return RefreshIndicator(
+        backgroundColor: Pallete.background,
+        color: Pallete.primary2,
+        onRefresh: () async {
+          listUsersFiltered.clear();
+          listUserBloc!.add(GetListUserEvent());
         },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: listUsersFiltered.length,
+          itemBuilder: (context, index) {
+            var item = listUsersFiltered[index];
+            return cardUser(context, item);
+          },
+        ),
       );
     } else {
       return IllustrationWidget(
@@ -156,6 +243,29 @@ class _ListUserScreenState extends State<ListUserScreen> {
   }
 
   cardUser(BuildContext context, UserDetail user) {
+    String? roleUser;
+    Color? roleColor;
+    switch (user.role) {
+      case 'wakasek kurikulum':
+        roleUser = 'Waka Kur';
+        roleColor = Colors.greenAccent.shade400;
+        break;
+      case 'operator':
+        roleUser = 'Operator';
+        roleColor = Colors.amber.shade400;
+        break;
+      case 'teacher':
+        roleUser = 'Guru';
+        roleColor = Colors.green.shade400;
+        break;
+      case 'student':
+        roleUser = 'Siswa';
+        roleColor = Colors.blue.shade400;
+        break;
+      default:
+        roleUser = 'Tidak Diketahui';
+        roleColor = Colors.red;
+    }
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, UserDetailScreen.path,
@@ -163,7 +273,7 @@ class _ListUserScreenState extends State<ListUserScreen> {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
             border: Border.all(width: 2, color: Pallete.border),
             borderRadius: BorderRadius.circular(16),
@@ -187,15 +297,17 @@ class _ListUserScreenState extends State<ListUserScreen> {
                     user.name!,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  divide4,
+                  divide6,
                   Container(
                     color: Pallete.border,
                     width: double.infinity,
                     height: 1.5,
                   ),
-                  divide4,
+                  divide6,
                   Text(
-                    user.idUser!,
+                    user.role != 'student'
+                        ? 'NIP. ${user.idUser!}'
+                        : 'NIS. ${user.idUser}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -206,17 +318,58 @@ class _ListUserScreenState extends State<ListUserScreen> {
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Colors.green,
+                color: roleColor,
               ),
               child: Text(
-                user.role!,
-                style: const TextStyle(fontSize: 12),
+                roleUser!,
+                style: const TextStyle(fontSize: 12, color: Colors.black),
               ),
             )
           ],
         ),
       ),
     );
+  }
+
+  shimmerListUser() {
+    return ListView.builder(
+        itemCount: 7,
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+                border: Border.all(width: 2, color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(16),
+                color: Pallete.primary2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Blink(width: 50, height: 50, isCircle: true),
+                divideW10,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Blink(width: 100, height: 20),
+                      divide6,
+                      Container(
+                        color: Colors.grey.shade300,
+                        width: double.infinity,
+                        height: 1.5,
+                      ),
+                      divide6,
+                      const Blink(width: 150, height: 20),
+                    ],
+                  ),
+                ),
+                divideW16,
+                const Blink(width: 70, height: 25),
+              ],
+            ),
+          );
+        });
   }
 
   buildFilter() {
@@ -250,7 +403,9 @@ class _ListUserScreenState extends State<ListUserScreen> {
                           break;
                         case 'Operator':
                           listUsersFiltered = listUserDetail
-                              .where((element) => element.role == 'operator')
+                              .where((element) =>
+                                  element.role == 'operator' ||
+                                  element.role == 'wakasek kurikulum')
                               .toList();
                           break;
                         default:
@@ -302,34 +457,6 @@ class _ListUserScreenState extends State<ListUserScreen> {
       ),
     );
   }
-
-  // Widget buildView(AllAttendancesModel data) {
-  //   return SingleChildScrollView(
-  //       scrollDirection: Axis.horizontal,
-  //       child: DataTable(
-  //           headingTextStyle: const TextStyle(color: Colors.amber),
-  //           dataTextStyle: const TextStyle(color: Colors.blue),
-  //           decoration: const BoxDecoration(color: Colors.red),
-  //           border: TableBorder.all(borderRadius: BorderRadius.circular(10)),
-  //           columns: const [
-  //             DataColumn(label: Text('Nama')),
-  //             DataColumn(label: Text('Jurusan')),
-  //             DataColumn(label: Text('Kelas')),
-  //             DataColumn(label: Text('Status Kehadiran')),
-  //           ],
-  //           rows: List.generate(data.attendanceTeacher!.length, (index) {
-  //             var item = data.attendanceTeacher![index];
-  //             return DataRow(
-  //               color: const MaterialStatePropertyAll(Colors.amber),
-  //               cells: <DataCell>[
-  //                 DataCell(Text(item.idTeacher!)),
-  //                 DataCell(Text(item.idSchedule!)),
-  //                 DataCell(Text(item.statusAttendance!)),
-  //                 DataCell(Text(item.createdAt.toString())),
-  //               ],
-  //             );
-  //           })));
-  // }
 }
 
 class UserDetail {
@@ -339,7 +466,7 @@ class UserDetail {
   String? studentClass;
   String? major;
   String? phone;
-  bool? gender;
+  String? gender;
   String? placeBirth;
   String? dateBirth;
   String? address;

@@ -13,11 +13,11 @@ Student _$StudentFromJson(Map<String, dynamic> json) => Student(
       studentClass: json['class'] as String?,
       major: json['major'] as String?,
       phone: json['phone'] as String?,
-      gender: json['gender'] as bool?,
+      gender: json['gender'] as String?,
       placeBirth: json['place_birth'] as String?,
       dateBirth: json['date_birth'] as String?,
       address: json['address'] as String?,
-      filePath: json['file_path'] as String?,
+      filePath: json['file_path'],
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
